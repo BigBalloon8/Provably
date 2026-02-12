@@ -30,7 +30,7 @@ set_option maxHeartbeats 0
 
 open BigOperators Real Nat Topology Rat
 ```
-even if there are errors int the given proof the lean should follow the given proof exactly, please dont leave any `sorry`s
+even if there are errors in the given proof the lean should follow the given proof exactly, please only leave sorry's if 
 """.strip()
 
 imports = """
@@ -48,7 +48,7 @@ async def aristotle_request(proof):
         project_input_type=ProjectInputType.INFORMAL,
         auto_add_imports=False,
         validate_lean_project=False,
-        output_file_path="/home/crae/projects/lean_ai/TestProj/TestProj/solution.lean"
+        output_file_path="Solution/solution.lean"
     )
 
 def query_aristotle(NL):
@@ -56,8 +56,7 @@ def query_aristotle(NL):
     asyncio.run(aristotle_request(get_lean(NL)))
     print("Aristotle Complete")
 
-
-def run_transformer_prover(prompt, model_id):
+def run_transformer_lean(prompt, model_id):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True)
 
@@ -71,7 +70,8 @@ def run_transformer_prover(prompt, model_id):
     return tokenizer.batch_decode(outputs)
 
 def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B"):
-    out = run_transformer_prover(get_lean_deepseek(prompt), model_id)[0]
+    print("Waiting for Deepseek")
+    out = run_transformer_lean(get_lean_deepseek(prompt), model_id)[0]
     pattern = re.compile(
         r"```lean4\s*\n(.*?)\n```",  # capture the code only
         flags=re.DOTALL
@@ -80,9 +80,10 @@ def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B"):
     code = blocks[-1]
     if "import" not in code:
         code = imports + code
-    with open("/home/crae/projects/lean_ai/TestProj/TestProj/solution.lean", "w") as file:
+    with open("Solution/solution.lean", "w") as file:
         file.write(code)
-    print(code)
+    print("Deepseek Complete")
+    #print(code)
 
 def verify_lean_file(filepath: str) -> bool:
     """Returns True if the Lean file compiles successfully."""

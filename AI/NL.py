@@ -1,4 +1,6 @@
 import anthropic
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
 
 def get_proof(claim):
@@ -11,6 +13,19 @@ PROVIDED SOLUTION
 ...
 """
 
+def run_transformer(prompt, model_id):
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True)
+
+    chat = [
+    {"role": "user", "content": get_proof(prompt)},
+    ]
+
+    inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
+
+    outputs = model.generate(inputs, max_new_tokens=8192)
+    return tokenizer.batch_decode(outputs)
+
 def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
     """Send a prompt to Claude and return the response."""
     client = anthropic.Anthropic()  # Uses ANTHROPIC_API_KEY env variable
@@ -20,7 +35,7 @@ def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
         model=model,
         max_tokens=2048,
         messages=[
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": get_proof(prompt)}
         ]
     )
     print("Claude Complete")
