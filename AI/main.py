@@ -1,5 +1,6 @@
 from NL import query_claude, get_proof, run_transformer
 from lean import query_aristotle, verify_lean_file, query_deepseek, run_transformer_lean
+from verify import verify_lean_file, verify_equality
 
 import os
 import asyncio
@@ -39,10 +40,12 @@ def main(args):
     else:
         raise ValueError("Models Supported for LEAN are: (query_claude)")
 
+    # check lean and NL are the same
+    NL_correctness = verify_equality(response)
 
     # Is valid
     attempts = 1
-    while not verify_lean_file("Solution/solution.lean"):
+    while not verify_lean_file("Solution/solution.lean") and not NL_correctness:
         if attempts >= args.max_attempts:
             raise RecursionError("Solution not found")
         attempts += 1
@@ -57,6 +60,11 @@ def main(args):
             query_deepseek(response)
         elif args.lean == "aristotle":
             query_aristotle(response)
+        
+        # check lean and NL are the same
+        NL_correctness = verify_equality(response)
+        
+
     
     print(response)
 

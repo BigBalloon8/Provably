@@ -4,9 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
 import asyncio
-import subprocess
 import re
-from pathlib import Path
 
 def get_lean(proof):
     return f"""This is a claim and proof written in natural language can you write it in lean as 1 to 1 as possible even if there is mistakes
@@ -43,7 +41,7 @@ open BigOperators Real Nat Topology Rat\n
 """.strip()
 
 async def aristotle_request(proof):
-    result = await Project.prove_from_file(
+    await Project.prove_from_file(
         input_content=proof,
         project_input_type=ProjectInputType.INFORMAL,
         auto_add_imports=False,
@@ -85,15 +83,3 @@ def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B"):
     print("Deepseek Complete")
     #print(code)
 
-def verify_lean_file(filepath: str) -> bool:
-    """Returns True if the Lean file compiles successfully."""
-    result = subprocess.run(
-        ["lake", "env", "lean", filepath],
-        capture_output=True,
-        text=True
-    )
-    if result.returncode == 0:
-        return True
-    else:
-        return False
-    
