@@ -67,7 +67,7 @@ def run_transformer_lean(prompt, model_id):
 
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(inputs, max_new_tokens=1024, cache_implementation="quantized")
+    outputs = model.generate(inputs, max_new_tokens=2048, cache_implementation="quantized")
     return tokenizer.batch_decode(outputs)
 
 def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=None):

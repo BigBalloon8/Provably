@@ -27,6 +27,10 @@ def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
 def verify_lean_file(filepath: str) -> bool:
     """Returns True if the Lean file compiles successfully."""
     print("Verifying Lean")
+    
+    with open(filepath, "r") as f:
+        sorries = "sorry" in f.read()
+
     result = subprocess.run(
         ["lake", "env", "lean", filepath],
         capture_output=True,
@@ -34,8 +38,8 @@ def verify_lean_file(filepath: str) -> bool:
     )
     if result.returncode == 0:
         print("Lean Succeed")
-        return True
+        return True and not sorries
     else:
         print("Lean Failed")
-        return False
+        return False and not sorries
     
