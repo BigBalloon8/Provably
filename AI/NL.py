@@ -23,7 +23,10 @@ def run_transformer(prompt, model_id):
 
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(inputs, max_new_tokens=8192)
+
+    print(f"{model_id} Started")
+    outputs = model.generate(inputs, max_new_tokens=2048)
+    print(f"{model_id} Completed")
     return tokenizer.batch_decode(outputs)
 
 def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:

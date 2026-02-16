@@ -17,6 +17,7 @@ def get_verify_prompt(proof, lean_file):
 """
 
 def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
+
     model = outlines.from_transformers(
     AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True),
     AutoTokenizer.from_pretrained(model_name)
@@ -25,13 +26,16 @@ def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
 
 def verify_lean_file(filepath: str) -> bool:
     """Returns True if the Lean file compiles successfully."""
+    print("Verifying Lean")
     result = subprocess.run(
         ["lake", "env", "lean", filepath],
         capture_output=True,
         text=True
     )
     if result.returncode == 0:
+        print("Lean Succeed")
         return True
     else:
+        print("Lean Failed")
         return False
     

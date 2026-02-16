@@ -49,10 +49,13 @@ async def aristotle_request(proof):
         output_file_path="Solution/solution.lean"
     )
 
-def query_aristotle(NL):
+def query_aristotle(NL, logger=None):
     print("Waiting for Aristotle")
     asyncio.run(aristotle_request(get_lean(NL)))
     print("Aristotle Complete")
+    if logger is not None:
+        logger.info("Aristotle Complete")
+
 
 def run_transformer_lean(prompt, model_id):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -64,12 +67,16 @@ def run_transformer_lean(prompt, model_id):
 
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(inputs, max_new_tokens=8192)
+    outputs = model.generate(inputs, max_new_tokens=1024, cache_implementation="quantized")
     return tokenizer.batch_decode(outputs)
 
-def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B"):
+def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=None):
     print("Waiting for Deepseek")
     out = run_transformer_lean(get_lean_deepseek(prompt), model_id)[0]
+    
+    if logger is not None:
+        logger.info(out)
+
     pattern = re.compile(
         r"```lean4\s*\n(.*?)\n```",  # capture the code only
         flags=re.DOTALL
@@ -77,7 +84,7 @@ def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B"):
     blocks = pattern.findall(out)
     code = blocks[-1]
     if "import" not in code:
-        code = imports + code
+        code = imports + "\n\n" + code
     with open("Solution/solution.lean", "w") as file:
         file.write(code)
     print("Deepseek Complete")
