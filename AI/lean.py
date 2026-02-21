@@ -7,13 +7,13 @@ import asyncio
 import re
 
 from verify import lean_file_output
-
+#-----------------------------------------------------------------------------------------------------
 def get_lean(proof):
     return f"""This is a claim and proof written in natural language can you write it in lean as 1 to 1 as possible even if there is mistakes
 
 {proof}
 """
-
+#-----------------------------------------------------------------------------------------------------
 def get_lean_deepseek_one_step(proof):
     return f"""
 This is a claim and proof written in natural language can you write it in lean as 1 to 1 as possible even if there is mistakes.
@@ -33,7 +33,7 @@ open BigOperators Real Nat Topology Rat
 ```
 
 """.strip()
-
+#-----------------------------------------------------------------------------------------------------
 def get_lean_deepseek_stage_1(proof):
     return f"""
 This is a claim and proof written in natural language can you write a guide for how to solve it in lean leaving sorry's for me to fill in the tactics
@@ -51,10 +51,11 @@ set_option maxHeartbeats 0
 
 open BigOperators Real Nat Topology Rat
 ```
+remember I want a guide on how to solve the question in lean leave sorry's for me to fill in, provide a detailed proof plan outlining the main proof steps and strategies.
+The plan should highlight key ideas, intermediate lemmas, and proof structures that will guide the construction of the final formal proof.
 
 """.strip()
-
-
+#-----------------------------------------------------------------------------------------------------
 imports = """
 import Mathlib
 import Aesop
@@ -72,6 +73,7 @@ Please fill in the sorry's in the following lean4 code
 {lean_code}
 ```
 """.strip()
+#-----------------------------------------------------------------------------------------------------
 
 async def aristotle_request(proof):
     await Project.prove_from_file(
@@ -95,7 +97,7 @@ def run_transformer_lean(prompt, model_id):
     model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True)
 
     chat = [
-    {"role": "user", "content": get_lean(prompt)},
+    {"role": "user", "content": prompt},
     ]
 
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
@@ -137,7 +139,7 @@ def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=
         if file_passes:
             break
         
-        seq = f"\n The following lean code \n```lean4\n{code}\n```\n resulted in this error:\n{output}\n Can you fix it"
+        seq = f"\n The following lean code \n```lean4\n{code}\n```\n resulted in this error:\n{output}\n Can you fix it, make sure you leave sorrys where they should be"
         
         print(f"Deepseek Stage 1 Complete ({i})")
 
