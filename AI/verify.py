@@ -41,5 +41,21 @@ def verify_lean_file(filepath: str) -> bool:
         return True and not sorries
     else:
         print("Lean Failed")
-        return False and not sorries
+        return False
+
+def lean_file_output(filepath: str) -> bool:
+    """Returns True if the Lean file compiles successfully."""
+    print("Verifying Lean")
+
+    result = subprocess.run(
+        ["lake", "env", "lean", filepath],
+        capture_output=True,
+        text=True
+    )
+    if result.returncode == 0:
+        print("Lean Succeed")
+        return True, result.stdout
+    else:
+        print("Lean Failed")
+        return False, result.stdout
     

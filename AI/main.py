@@ -18,6 +18,8 @@ def main(args):
         file.write("")
     
     logger = get_logger()
+    LEAN_ATTEMPTS=3
+
 
     if "ANTHROPIC_API_KEY" not in os.environ.keys() and args.nl == "anthropic":
         os.environ["ANTHROPIC_API_KEY"] = input("Enter Claude API Key:").strip()    
@@ -27,8 +29,8 @@ def main(args):
     # Query
     query = input("Enter Maths Claim: ")
     if query == "".strip(" "):
-        #query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
-        query = r"Let x be a real number with 0 < x < 1 and let (a_n)n∈N be a sequence of positive real numbers such that, for all n, \frac{a_{n+1}}{a_n}<x. Prove the series \sum^\infty_{n=1}a_n converges."
+        query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
+        #query = r"Let x be a real number with 0 < x < 1 and let (a_n)n∈N be a sequence of positive real numbers such that, for all n, \frac{a_{n+1}}{a_n}<x. Prove the series \sum^\infty_{n=1}a_n converges."
         print(f"No user question given using: {query}")
     
     logger.info(query)
@@ -44,7 +46,7 @@ def main(args):
 
     # LEAN
     if args.lean == "deepseek":
-        query_deepseek(response, logger=logger)
+        query_deepseek(response, logger=logger, attempts=LEAN_ATTEMPTS)
     elif args.lean == "aristotle":
         query_aristotle(response, logger=logger)
     else:
@@ -69,10 +71,9 @@ def main(args):
 
         # LEAN
         if args.lean == "deepseek":
-            query_deepseek(response, logger=logger)
+            query_deepseek(response, logger=logger, attempts=LEAN_ATTEMPTS)
         elif args.lean == "aristotle":
             query_aristotle(response, logger=logger)
-        
         
         # check lean and NL are the same
         NL_correctness = verify_equality(response)
