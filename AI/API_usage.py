@@ -13,7 +13,7 @@ def main(address:str):
         "query": query,
         "model": NL_model
     }
-    response = requests.post(address + "/nl/", json=nl_data).json()
+    response = requests.post(address + "/nl/", json=nl_data)
 
     lean_data = {
         "proof": response["proof"],
@@ -35,3 +35,6 @@ def main(address:str):
     
     print(response["proof"])
 
+if __name__ == "__main__":
+    host = "http://127.0.0.1:8000"
+    main(host)

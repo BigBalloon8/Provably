@@ -6,6 +6,7 @@ import anthropic
 
 import asyncio
 import re
+import os
 
 from verify import lean_file_output
 #-----------------------------------------------------------------------------------------------------
@@ -54,7 +55,7 @@ async def aristotle_request(proof):
         project_input_type=ProjectInputType.INFORMAL,
         auto_add_imports=False,
         validate_lean_project=False,
-        output_file_path="Solution/solution.lean"
+        output_file_path=os.path.join(os.environ["SOLUTIONPATH"],"solution.lean")
     )
 
 def query_aristotle(NL, logger=None):
@@ -120,10 +121,10 @@ def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logg
 
         code = get_lean_code_block(out)
         
-        with open("Solution/solution.lean", "w") as file:
+        with open(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"), "w") as file:
             file.write(code)
         
-        file_passes, output = lean_file_output("Solution/solution.lean")
+        file_passes, output = lean_file_output(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"))
         
         if file_passes:
             break

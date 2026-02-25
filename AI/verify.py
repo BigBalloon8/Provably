@@ -3,6 +3,7 @@ import torch
 import outlines
 
 import subprocess
+import os
 
 def get_verify_prompt(proof, lean_file):
     with open(lean_file, "r") as f:
@@ -22,7 +23,7 @@ def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
     AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True),
     AutoTokenizer.from_pretrained(model_name)
     )
-    return model(get_verify_prompt(proof, "Solution/solution.lean"), bool)
+    return model(get_verify_prompt(proof, os.path.join(os.environ["SOLUTIONPATH"],"solution.lean")), bool)
 
 def verify_lean_file(filepath: str) -> bool:
     """Returns True if the Lean file compiles successfully."""

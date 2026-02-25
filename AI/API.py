@@ -9,6 +9,8 @@ from logger import get_logger
 from transformers.utils import logging
 logging.set_verbosity_error()
 
+import os
+
 provablyAPI = FastAPI()
 
 # Define request body schema
@@ -25,7 +27,7 @@ class VerifyQuery(BaseModel):
 
 @provablyAPI.post("/nl/")
 async def nl_solution(nlquery: NLQuery):
-    with open("Solution/solution.lean", "w") as file:
+    with open(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"), "w") as file:
         file.write("")
     
     logger = get_logger() 
@@ -55,4 +57,4 @@ async def create_item(verifyquery: VerifyQuery):
                           claude_fix_this=verifyquery.claude_fix_this)
 
     NL_correctness = verify_equality(verifyquery.proof)
-    return {"valid": NL_correctness and verify_lean_file("Solution/solution.lean")}
+    return {"valid": NL_correctness and verify_lean_file(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"))}
