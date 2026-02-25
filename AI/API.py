@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from NL import query_claude, get_proof, run_transformer
-from lean import query_aristotle, query_transformer, run_transformer_lean
+from NL import query_claude, run_transformer
+from lean import query_aristotle, query_transformer
 from verify import verify_lean_file, verify_equality
 from logger import get_logger
 
@@ -37,7 +37,7 @@ async def nl_solution(nlquery: NLQuery):
     if "claude" in nlquery.model:
         response = query_claude(nlquery.query, nlquery.model)
     else:
-        response = run_transformer_lean(nlquery.query, nlquery.model)
+        response = run_transformer(nlquery.query, nlquery.model)
     
     logger.info(response)
     
@@ -55,6 +55,7 @@ async def create_item(verifyquery: VerifyQuery):
                           logger=logger, 
                           attempts=verifyquery.lean_attempts, 
                           claude_fix_this=verifyquery.claude_fix_this)
+
 
     NL_correctness = verify_equality(verifyquery.proof)
     return {"valid": NL_correctness and verify_lean_file(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"))}
