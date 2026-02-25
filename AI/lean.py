@@ -2,6 +2,7 @@ import aristotlelib
 from aristotlelib import Project, ProjectInputType
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import anthropic
 
 import asyncio
 import re
@@ -13,30 +14,11 @@ def get_lean(proof):
 
 {proof}
 """
+
 #-----------------------------------------------------------------------------------------------------
-def get_lean_deepseek_one_step(proof):
+def get_lean_deepseek(proof):
     return f"""
-This is a claim and proof written in natural language can you write it in lean as 1 to 1 as possible even if there is mistakes.
-
-Proof: 
-{proof}
-
-Complete the following Lean 4 code:
-
-```lean4
-import Mathlib
-import Aesop
-
-set_option maxHeartbeats 0
-
-open BigOperators Real Nat Topology Rat
-```
-
-""".strip()
-#-----------------------------------------------------------------------------------------------------
-def get_lean_deepseek_stage_1(proof):
-    return f"""
-This is a claim and proof written in natural language can you write a guide for how to solve it in lean leaving sorry's for me to fill in the tactics
+This is a claim and proof written in natural language can you write the equivalent lean code trying to keep it as 1 to 1 as possible
 
 Proof: 
 {proof}
@@ -51,8 +33,8 @@ set_option maxHeartbeats 0
 
 open BigOperators Real Nat Topology Rat
 ```
-remember I want a guide on how to solve the question in lean leave sorry's for me to fill in, provide a detailed proof plan outlining the main proof steps and strategies.
-The plan should highlight key ideas, intermediate lemmas, and proof structures that will guide the construction of the final formal proof.
+Provide a detailed proof plan outlining the main proof steps and strategies. The plan should highlight key ideas, intermediate lemmas, \
+and proof structures that will guide the construction of the final formal proof.
 
 """.strip()
 #-----------------------------------------------------------------------------------------------------
@@ -63,15 +45,6 @@ import Aesop
 set_option maxHeartbeats 0
 
 open BigOperators Real Nat Topology Rat\n
-""".strip()
-
-def get_lean_deepseek_stage_2(lean_code):
-    return f"""
-Please fill in the sorry's in the following lean4 code
-
-```lean4
-{lean_code}
-```
 """.strip()
 #-----------------------------------------------------------------------------------------------------
 
@@ -103,7 +76,7 @@ def run_transformer_lean(prompt, model_id):
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
     outputs = model.generate(inputs, max_new_tokens=2048, cache_implementation="quantized")
-    return tokenizer.batch_decode(outputs)
+    return tokenizer.batch_decode(outputs)[0]
 
 
 def get_lean_code_block(text):
@@ -117,14 +90,30 @@ def get_lean_code_block(text):
         code = imports + "\n\n" + code
     return code
 
+def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
+    """Send a prompt to Claude and return the response."""
+    client = anthropic.Anthropic()  # Uses ANTHROPIC_API_KEY env variable
+    
+    message = client.messages.create(
+        model=model,
+        max_tokens=4092,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return message.content[0].text
 
-def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=None, stage_2=True, attempts=1):
 
-    seq = get_lean_deepseek_stage_1(prompt) if stage_2 else get_lean_deepseek_one_step(prompt)
+def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=None, attempts=1, claude_fix_this=True):
+
+    seq = get_lean_deepseek(prompt)
 
     for i in range(attempts):
-        print(f"Waiting for Deepseek Stage 1 ({i})")
-        out = run_transformer_lean(seq, model_id)[0]
+        print(f"Waiting for Deepseek (Attempt {i})")
+        if i > 0 and claude_fix_this:
+            query_claude(seq)
+        else:
+            out = run_transformer_lean(seq, model_id)
         
         if logger is not None:
             logger.info(out)
@@ -139,32 +128,8 @@ def query_deepseek(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=
         if file_passes:
             break
         
-        seq = f"\n The following lean code \n```lean4\n{code}\n```\n resulted in this error:\n{output}\n Can you fix it, make sure you leave sorrys where they should be"
+        seq = f"\n The following lean code \n```lean4\n{code}\n```\n resulted in this error:\n{output}\n Can you fix it, giving the output in as \n```lean4\n...\n```: "
         
-        print(f"Deepseek Stage 1 Complete ({i})")
-
-
-    if stage_2:
-        seq = get_lean_deepseek_stage_2(code)
-        for i in range(attempts):
-            print(f"Waiting for Deepseek Stage 2 ({i})")
-            out = run_transformer_lean(seq, model_id)[0]
-
-            complete_code = get_lean_code_block(out)
-
-            with open("Solution/solution.lean", "w") as file:
-                file.write(complete_code)
-            
-            if logger is not None:
-                logger.info(out)
-            
-            file_passes, output = lean_file_output("Solution/solution.lean")
-        
-            if file_passes:
-                break
-
-            seq = f"\n The following lean code \n```lean4\n{complete_code}\n```\n resulted in this error:\n{output}\n Can you rewrite it with the fixes"
-
     print("Deepseek Complete")
     #print(code)
 

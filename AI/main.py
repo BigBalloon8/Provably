@@ -1,5 +1,5 @@
 from NL import query_claude, get_proof, run_transformer
-from lean import query_aristotle, query_deepseek, run_transformer_lean
+from lean import query_aristotle, query_transformer, run_transformer_lean
 from verify import verify_lean_file, verify_equality
 from logger import get_logger
 
@@ -29,36 +29,20 @@ def main(args):
     # Query
     query = input("Enter Maths Claim: ")
     if query == "".strip(" "):
-        query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
+        #query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
         #query = r"Let x be a real number with 0 < x < 1 and let (a_n)n∈N be a sequence of positive real numbers such that, for all n, \frac{a_{n+1}}{a_n}<x. Prove the series \sum^\infty_{n=1}a_n converges."
+        query = r"Let G be a group, prove the following are equivalent\n1. G is abelian\n2. For all g,h \in G $(g * h)^2 = g^2 * h^2$"
         print(f"No user question given using: {query}")
     
     logger.info(query)
     
-    # NL
-    if args.nl == "anthropic":
-        response = query_claude(get_proof(query))
-    else: # default to a trans
-        response = run_transformer(query, args.nl)
-    # print(response)
 
-    logger.info(response)
-
-    # LEAN
-    if args.lean == "deepseek":
-        query_deepseek(response, logger=logger, attempts=LEAN_ATTEMPTS)
-    elif args.lean == "aristotle":
-        query_aristotle(response, logger=logger)
-    else:
-        raise ValueError("Models Supported for LEAN are: (query_claude)")
-
-    # check lean and NL are the same
-    NL_correctness = verify_equality(response)
+    NL_correctness = False
 
     # Is valid
     attempts = 1
     while not (verify_lean_file("Solution/solution.lean") and NL_correctness):
-        if attempts >= args.max_attempts:
+        if attempts > args.max_attempts:
             raise RecursionError("Solution not found")
         attempts += 1
         # NL
@@ -71,15 +55,15 @@ def main(args):
 
         # LEAN
         if args.lean == "deepseek":
-            query_deepseek(response, logger=logger, attempts=LEAN_ATTEMPTS)
+            query_transformer(response, logger=logger, attempts=LEAN_ATTEMPTS)
         elif args.lean == "aristotle":
             query_aristotle(response, logger=logger)
+        else:
+            raise ValueError("Models Supported for LEAN are: (deepseek | aristotle)")
         
         # check lean and NL are the same
         NL_correctness = verify_equality(response)
         
-
-    
     print(response)
 
 

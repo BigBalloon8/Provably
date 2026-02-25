@@ -5,10 +5,12 @@ set_option maxHeartbeats 0
 
 open BigOperators Real Nat Topology Rat
 
-theorem intersection_of_subgroups_is_trivial (G : Type*) [Group G] (H K : Subgroup G) 
-  (hH : Nat.card H = 65) (hK : Nat.card K = 56) : H ∩ K = ⊥ := by
-  have h1 : Nat.card (H ∩ K) ∣ 65 := by sorry
-  have h2 : Nat.card (H ∩ K) ∣ 56 := by sorry
-  have h3 : Nat.card (H ∩ K) = 1 := by sorry
-  have h4 : H ∩ K = ⊥ := by sorry
-  exact h4
+theorem group_abelian_iff_square_condition (G : Type*) [Group G] :
+  (∀ g h : G, g * h = h * g) ↔ (∀ g h : G, (g * h) ^ 2 = g ^ 2 * h ^ 2) := by
+  have h_forward : (∀ g h : G, g * h = h * g) → (∀ g h : G, (g * h) ^ 2 = g ^ 2 * h ^ 2) := by
+    sorry
+  have h_backward : (∀ g h : G, (g * h) ^ 2 = g ^ 2 * h ^ 2) → (∀ g h : G, g * h = h * g) := by
+    sorry
+  have h_main : (∀ g h : G, g * h = h * g) ↔ (∀ g h : G, (g * h) ^ 2 = g ^ 2 * h ^ 2) := by
+    sorry
+  exact h_main
