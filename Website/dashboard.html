@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcademIQ — Tutor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dashboard-page">
+
+  <!-- ── Navigation ──────────────────────────────────────────────── -->
+  <nav class="nav">
+    <!-- Mobile: sidebar toggle -->
+    <button
+      class="sidebar-toggle"
+      id="sidebarToggle"
+      aria-label="Toggle sidebar"
+      aria-expanded="false"
+    >
+      <!-- Hamburger icon (pure CSS/SVG) -->
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect y="3"  width="20" height="2" rx="1" fill="currentColor"/>
+        <rect y="9"  width="20" height="2" rx="1" fill="currentColor"/>
+        <rect y="15" width="20" height="2" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- Brand -->
+    <a href="index.html" class="nav-brand nav-brand-link">
+      <span class="brand-icon">∑</span>
+      <span class="brand-name">AcademIQ</span>
+    </a>
+
+    <!-- Right: level pill + change link -->
+    <div class="nav-right">
+      <span class="nav-level-pill" id="navLevelPill">—</span>
+      <a href="education.html" class="nav-change-link">Change level</a>
+    </div>
+  </nav>
+
+  <!-- ── Dashboard Body ───────────────────────────────────────────── -->
+  <div class="dashboard-body">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar" aria-label="Session sidebar">
+
+      <!-- Level badge -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Current Level</div>
+        <div class="level-badge" id="sidebarLevelBadge">
+          <span class="level-badge-icon" id="sidebarLevelIcon">—</span>
+          <span id="sidebarLevelText">Loading…</span>
+        </div>
+      </div>
+
+      <!-- New problem button -->
+      <div class="sidebar-section">
+        <button class="sidebar-new-btn" id="newProblemBtn" aria-label="Start a new problem">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          New Problem
+        </button>
+      </div>
+
+      <!-- Recent problems -->
+      <div class="sidebar-section" id="historySection">
+        <div class="sidebar-label">Recent Problems</div>
+        <div id="historyList">
+          <!-- Populated dynamically by script.js -->
+          <div class="sidebar-history-item" style="color: var(--text-3); font-style: italic; cursor: default;">
+            No problems yet
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────── -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Steps / results area -->
+      <div class="steps-area" id="stepsArea">
+
+        <!-- Default welcome state -->
+        <div class="welcome-state" id="welcomeState">
+          <div class="welcome-state-icon">∑</div>
+          <h2>Ready to solve a problem?</h2>
+          <p>
+            Type an equation or question in the box below and press
+            <strong>Solve</strong>. I'll walk you through it step by step.
+          </p>
+          <div class="welcome-examples" id="exampleChips">
+            <button class="example-chip" data-eq="2x + 4 = 10">2x + 4 = 10</button>
+            <button class="example-chip" data-eq="x² - 5x + 6 = 0">x² - 5x + 6 = 0</button>
+            <button class="example-chip" data-eq="sin(x) = 0.5">sin(x) = 0.5</button>
+            <button class="example-chip" data-eq="d/dx [x³ + 2x]">d/dx [x³ + 2x]</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Input Bar ───────────────────────────────────────────── -->
+      <div class="input-bar">
+        <input
+          type="text"
+          id="questionInput"
+          class="input-field"
+          placeholder="Enter an equation or question…"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          aria-label="Math question input"
+        />
+        <button
+          id="solveBtn"
+          class="solve-btn"
+          aria-label="Solve"
+        >
+          Solve
+        </button>
+      </div>
+
+    </main>
+  </div><!-- /.dashboard-body -->
+
+  <!-- Sidebar backdrop (mobile) -->
+  <div id="sidebarBackdrop" style="
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.25);
+    z-index: 40;
+  "></div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

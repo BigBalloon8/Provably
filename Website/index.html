@@ -1,24 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Website Title</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcademIQ — Virtual Math Tutor</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="landing-page">
 
-    <div class="container">
-        <h1>Classroom Assistant</h1>
-        
-        <div class="input-section">
-            <input type="text" id="questionInput" placeholder="Enter your question (TEST QUESTION).">
-            <button onclick="askTeacher()">Solve</button>
+  <!-- ── Navigation ──────────────────────────────────────────────── -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <span class="brand-icon">∑</span>
+      <span class="brand-name">AcademIQ</span>
+    </div>
+  </nav>
+
+  <!-- ── Hero ────────────────────────────────────────────────────── -->
+  <main class="landing-main">
+
+    <section class="hero">
+      <div class="hero-eyebrow">Your AI Mathematics Companion</div>
+
+      <h1 class="hero-title">
+        Master Mathematics,<br>
+        <em>Step by Step.</em>
+      </h1>
+
+      <p class="hero-subtitle">
+        Work through problems at your own pace. Each solution is guided,<br>
+        not given — so you genuinely learn, not just copy.
+      </p>
+
+      <div class="hero-actions">
+        <a href="education.html" class="btn btn-primary">Log In</a>
+        <a href="education.html" class="btn btn-secondary">Sign Up with School</a>
+      </div>
+    </section>
+
+    <!-- ── Preview Card ─────────────────────────────────────────── -->
+    <div class="landing-preview">
+      <div class="preview-card" aria-hidden="true">
+
+        <div class="preview-step visible">
+          <span class="step-num">Step 1</span>
+          <p>Identify the equation: <strong>2x + 4 = 10</strong>. We need to isolate <em>x</em>.</p>
         </div>
 
-        <div id="stepsContainer" class="blackboard">
-            </div>
+        <div class="preview-step blurred">
+          <span class="step-num">Step 2</span>
+          <p>Subtract 4 from both sides to get <strong>2x = 6</strong>.</p>
+        </div>
+
+        <div class="preview-step blurred">
+          <span class="step-num">Step 3</span>
+          <p>Divide both sides by 2. Therefore <strong>x = 3</strong>.</p>
+        </div>
+
+      </div>
     </div>
 
-    <script src="script.js"></script>
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────── -->
+  <footer class="landing-footer">
+    <p>&copy; 2026 AcademIQ. Built for learners.</p>
+  </footer>
+
+  <script>
+    // Trigger page fade-in once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('loaded');
+    });
+  </script>
+
 </body>
 </html>
