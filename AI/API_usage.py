@@ -21,7 +21,7 @@ def main(address:str):
         "lean_attempts": lean_attempts,
         "claude_fix_this": claude_fix_this 
     }
-
+    
     lean_correct = requests.post(address + "/lean-verify/", json=lean_data)
     while not lean_correct["valid"]:
         response = requests.post(address + "/nl/", json=nl_data).json()

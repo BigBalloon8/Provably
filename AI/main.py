@@ -20,7 +20,6 @@ def main(args):
     logger = get_logger()
     LEAN_ATTEMPTS=3
 
-
     if "ANTHROPIC_API_KEY" not in os.environ.keys() and args.nl == "anthropic":
         os.environ["ANTHROPIC_API_KEY"] = input("Enter Claude API Key:").strip()    
     if "ARISTOTLE_API_KEY" not in os.environ.keys() and args.lean == "aristotle":

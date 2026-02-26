@@ -24,7 +24,7 @@ def run_transformer(prompt, model_id):
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
     print(f"{model_id} Started")
-    outputs = model.generate(inputs, max_new_tokens=2048)
+    outputs = model.generate(inputs, max_new_tokens=4096)
     print(f"{model_id} Completed")
     return tokenizer.batch_decode(outputs)
 
@@ -36,7 +36,7 @@ def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
     print("Waiting for Claude")
     message = client.messages.create(
         model=model,
-        max_tokens=2048,
+        max_tokens=4096,
         messages=[
             {"role": "user", "content": get_proof(prompt)}
         ]

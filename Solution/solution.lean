@@ -3,61 +3,84 @@ import Aesop
 
 set_option maxHeartbeats 0
 
-open BigOperators Real Nat Topology Rat
+open BigOperators Real Nat Topology Rat Int
 
-theorem group_abelian_iff_square_condition (G : Type*) [Group G] :
-  (∀ g h : G, (g * h) ^ 2 = g ^ 2 * h ^ 2) ↔ (∀ g h : G, g * h = h * g) := by
-  constructor
-  · -- (1) ⟹ (2): Assume (g * h)² = g² * h² for all g, h, prove G is abelian
-    intro h_square g h
-    have h1 : (g * h) ^ 2 = g ^ 2 * h ^ 2 := h_square g h
-    have h2 : g * h = h * g := by
-      have h3 : (g * h) ^ 2 = g ^ 2 * h ^ 2 := h1
-      have h4 : (g * h) * (g * h) = g * g * (h * h) := by
-        simp [pow_two, mul_assoc] at h3 ⊢
-        <;> simp_all [mul_assoc]
-        <;> aesop
-      have h5 : g * h = h * g := by
-        have h6 := h4
-        simp [mul_assoc] at h6
-        rw [← mul_right_inj (g⁻¹ : G)] at h6 ⊢
-        simp_all [mul_assoc, mul_inv_self, one_mul, mul_one]
-        <;>
-        simp_all [mul_assoc, mul_inv_self, one_mul, mul_one]
-        <;>
-        aesop
-      exact h5
-    exact h2
-  · -- (2) ⟹ (1): Assume G is abelian, prove (g * h)² = g² * h² for all g, h
-    intro h_abelian g h
-    have h1 : g * h = h * g := h_abelian g h
-    have h2 : (g * h) ^ 2 = g ^ 2 * h ^ 2 := by
-      have h3 : (g * h) ^ 2 = g ^ 2 * h ^ 2 := by
-        calc
-          (g * h) ^ 2 = (g * h) * (g * h) := by simp [pow_two]
-          _ = g * (h * g) * h := by
-            simp [mul_assoc, h1]
-            <;>
-            simp_all [mul_assoc]
-            <;>
-            aesop
-          _ = g * (g * h) * h := by
-            simp [h1]
-            <;>
-            simp_all [mul_assoc]
-            <;>
-            aesop
-          _ = (g * g) * (h * h) := by
-            simp [mul_assoc]
-            <;>
-            simp_all [mul_assoc]
-            <;>
-            aesop
-          _ = g ^ 2 * h ^ 2 := by
-            simp [pow_two]
-            <;>
-            simp_all [mul_assoc]
-            <;>
-            aesop
-      exact h3
-    exact h2
+theorem irrational_sqrt2 : ¬∃ (a b : ℤ), b ≠ 0 ∧ a.natAbs.gcd b.natAbs = 1 ∧ (a : ℝ) / b = Real.sqrt 2 := by
+  have h_main : ∀ (a b : ℤ), b ≠ 0 → a.natAbs.gcd b.natAbs = 1 → (a : ℝ) / b = Real.sqrt 2 → False := by
+    intro a b hb hgcd h
+    have h₁ : (a : ℝ) / b = Real.sqrt 2 := h
+    have h₂ : (a : ℝ) = b * Real.sqrt 2 := by
+      have h₃ : b ≠ 0 := by simpa using hb
+      field_simp [h₃] at h₁
+      exact h₁
+    have h₃ : (a : ℝ) = b * Real.sqrt 2 := h₂
+    have h₄ : (a : ℝ) ^ 2 = (b * Real.sqrt 2) ^ 2 := by rw [h₃]
+    have h₅ : (a : ℝ) ^ 2 = 2 * (b : ℝ) ^ 2 := by
+      rw [h₄]
+      ring_nf
+      rw [Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 2)]
+      ring
+    have h₇ : (a : ℤ) ^ 2 = 2 * (b : ℤ) ^ 2 := by
+      have h₈ : (a : ℝ) ^ 2 = 2 * (b : ℝ) ^ 2 := h₅
+      norm_cast at h₈
+    have h₈ : 2 ∣ a ^ 2 := by
+      use b ^ 2
+      linarith
+    have h₉ : 2 ∣ a := by
+      have h₁₀ : 2 ∣ a ^ 2 := h₈
+      exact (Int.prime_two.dvd_of_dvd_pow h₁₀)
+    have h₁₀ : a % 2 = 0 := by
+      omega
+    have h₁₁ : ∃ k : ℤ, a = 2 * k := by
+      use a / 2
+      have h₁₂ : a % 2 = 0 := h₁₀
+      have h₁₃ : a = 2 * (a / 2) := by
+        omega
+      linarith
+    rcases h₁₁ with ⟨k, hk⟩
+    have h₁₂ : (a : ℤ) ^ 2 = 2 * (b : ℤ) ^ 2 := h₇
+    rw [hk] at h₁₂
+    have h₁₃ : (2 * k : ℤ) ^ 2 = 2 * (b : ℤ) ^ 2 := by
+      linarith
+    have h₁₄ : 4 * (k : ℤ) ^ 2 = 2 * (b : ℤ) ^ 2 := by
+      ring_nf at h₁₃ ⊢
+      nlinarith
+    have h₁₅ : 2 * (k : ℤ) ^ 2 = (b : ℤ) ^ 2 := by
+      nlinarith
+    have h₁₆ : 2 ∣ b ^ 2 := by
+      use k ^ 2
+      linarith
+    have h₁₇ : 2 ∣ b := by
+      have h₁₈ : 2 ∣ b ^ 2 := h₁₆
+      exact Int.prime_two.dvd_of_dvd_pow h₁₈
+    have h₁₈ : b % 2 = 0 := by
+      omega
+    have h₁₉ : ∃ m : ℤ, b = 2 * m := by
+      use b / 2
+      have h₂₁ : b = 2 * (b / 2) := by
+        omega
+      linarith
+    rcases h₁₉ with ⟨m, hm⟩
+    have h₂₀ : a.natAbs.gcd b.natAbs = 1 := hgcd
+    have h₂₆ : 2 ∣ a.natAbs := by
+      have h₂₇ : 2 ∣ a := by omega
+      rw [Int.coe_nat_dvd]
+      exact Int.natCast_dvd_natCast.mpr (Int.natAbs_dvd.mpr h₂₇)
+    have h₂₇ : 2 ∣ b.natAbs := by
+      have h₂₈ : 2 ∣ b := by omega
+      rw [Int.coe_nat_dvd]
+      exact Int.natCast_dvd_natCast.mpr (Int.natAbs_dvd.mpr h₂₈)
+    have h₂₈ : 2 ∣ a.natAbs.gcd b.natAbs := by
+      exact Nat.dvd_gcd h₂₆ h₂₇
+    have h₂₉ : a.natAbs.gcd b.natAbs ≥ 2 := by
+      by_contra h
+      have h₃₇ : a.natAbs.gcd b.natAbs ≤ 1 := by linarith
+      have h₃₈ : a.natAbs.gcd b.natAbs = 0 ∨ a.natAbs.gcd b.natAbs = 1 := by omega
+      cases h₃₈ with
+      | inl h₃₈ => simp_all; omega
+      | inr h₃₈ => simp_all; omega
+    omega
+  intro h
+  rcases h with ⟨a, b, hb, hgcd, h⟩
+  have h₁ := h_main a b hb hgcd h
+  exact h₁

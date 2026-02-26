@@ -76,7 +76,7 @@ def run_transformer_lean(prompt, model_id):
 
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(inputs, max_new_tokens=2048, cache_implementation="quantized")
+    outputs = model.generate(inputs, max_new_tokens=4096, cache_implementation="quantized")
     return tokenizer.batch_decode(outputs)[0]
 
 
@@ -112,12 +112,12 @@ def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logg
     for i in range(attempts):
         print(f"Waiting for Deepseek (Attempt {i})")
         if i > 0 and claude_fix_this:
-            query_claude(seq)
+            out = query_claude(seq, model="claude-opus-4-6")
         else:
             out = run_transformer_lean(seq, model_id)
         
         if logger is not None:
-            logger.info(out)
+            logger.info(out.replace("```<｜end▁of▁sentence｜>", "```\n<｜end▁of▁sentence｜>"))
 
         code = get_lean_code_block(out)
         
