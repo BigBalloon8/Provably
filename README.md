@@ -15,6 +15,7 @@ export ARISTOTLE_API_KEY=arstl_...
 ```
 git clone https://github.com/BigBalloon8/Provably.git
 cd Provably
+export SOLUTIONPATH=$PWD/Solution
 lake build
 python AI/main.py
 ```

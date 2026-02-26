@@ -3,6 +3,7 @@ import torch
 import outlines
 
 import subprocess
+import os
 
 def get_verify_prompt(proof, lean_file):
     with open(lean_file, "r") as f:
@@ -22,11 +23,15 @@ def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
     AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True),
     AutoTokenizer.from_pretrained(model_name)
     )
-    return model(get_verify_prompt(proof, "Solution/solution.lean"), bool)
+    return model(get_verify_prompt(proof, os.path.join(os.environ["SOLUTIONPATH"],"solution.lean")), bool)
 
 def verify_lean_file(filepath: str) -> bool:
     """Returns True if the Lean file compiles successfully."""
     print("Verifying Lean")
+    
+    with open(filepath, "r") as f:
+        sorries = "sorry" in f.read()
+
     result = subprocess.run(
         ["lake", "env", "lean", filepath],
         capture_output=True,
@@ -34,8 +39,24 @@ def verify_lean_file(filepath: str) -> bool:
     )
     if result.returncode == 0:
         print("Lean Succeed")
-        return True
+        return True and not sorries
     else:
         print("Lean Failed")
         return False
+
+def lean_file_output(filepath: str) -> bool:
+    """Returns True if the Lean file compiles successfully."""
+    print("Verifying Lean")
+
+    result = subprocess.run(
+        ["lake", "env", "lean", filepath],
+        capture_output=True,
+        text=True
+    )
+    if result.returncode == 0:
+        print("Lean Succeed")
+        return True, result.stdout
+    else:
+        print("Lean Failed")
+        return False, result.stdout
     
