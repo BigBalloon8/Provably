@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Provably — AI Proof Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="landing-page">
+
+  <!-- ── Navigation ──────────────────────────────────────────────── -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <span class="brand-icon">∀</span>
+      <span class="brand-name">Provably</span>
+    </div>
+  </nav>
+
+  <!-- ── Hero ────────────────────────────────────────────────────── -->
+  <main class="landing-main">
+
+    <section class="hero">
+      <div class="hero-eyebrow">AI-Powered Mathematical Proof Engine</div>
+
+      <h1 class="hero-title">
+        Generate Rigorous<br>
+        <em>Mathematical Proofs.</em>
+      </h1>
+
+      <p class="hero-subtitle">
+        State a theorem. Get a complete, formally verified proof —<br>
+        powered by state-of-the-art AI models.
+      </p>
+
+      <div class="hero-actions">
+        <a href="dashboard.html" class="btn btn-primary">Log In</a>
+        <a href="dashboard.html" class="btn btn-secondary">Sign Up</a>
+      </div>
+    </section>
+
+    <!-- ── Preview Card ─────────────────────────────────────────── -->
+    <div class="landing-preview">
+      <div class="preview-card proof-preview-card" aria-hidden="true">
+
+        <div class="preview-query-block">
+          <span class="preview-query-label">Theorem</span>
+          <p>Prove that <strong>&radic;2</strong> is irrational.</p>
+        </div>
+
+        <div class="preview-proof-block">
+          <span class="preview-proof-label">Proof</span>
+          <p>
+            Suppose, for contradiction, that &radic;2 is rational. Then
+            &radic;2&nbsp;=&nbsp;<em>p</em>&thinsp;/&thinsp;<em>q</em> where
+            <em>p</em>, <em>q</em>&nbsp;&isin;&nbsp;<strong>&#x2124;</strong> and
+            gcd(<em>p</em>,&nbsp;<em>q</em>)&nbsp;=&nbsp;1. Squaring both sides gives
+            <em>p</em><sup>2</sup>&nbsp;=&nbsp;2<em>q</em><sup>2</sup>, so
+            <em>p</em><sup>2</sup> is even, hence <em>p</em> is even. Writing
+            <em>p</em>&nbsp;=&nbsp;2<em>k</em> yields
+            <em>q</em><sup>2</sup>&nbsp;=&nbsp;2<em>k</em><sup>2</sup>, meaning
+            <em>q</em> is also even — contradicting gcd(<em>p</em>,&nbsp;<em>q</em>)&nbsp;=&nbsp;1.
+            Therefore &radic;2 is irrational.&nbsp;<strong>&#x25A0;</strong>
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────── -->
+  <footer class="landing-footer">
+    <p>&copy; 2026 Provably. Built for mathematicians.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('loaded');
+    });
+  </script>
+
+</body>
+</html>

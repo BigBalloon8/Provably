@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcademIQ — Choose Your Level</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="selection-page">
+
+  <!-- ── Navigation ──────────────────────────────────────────────── -->
+  <nav class="nav">
+    <a href="index.html" class="nav-brand nav-brand-link">
+      <span class="brand-icon">∑</span>
+      <span class="brand-name">AcademIQ</span>
+    </a>
+  </nav>
+
+  <!-- ── Selection ────────────────────────────────────────────────── -->
+  <main class="selection-main">
+
+    <div class="selection-header">
+      <h1 class="selection-title">What level are you studying at?</h1>
+      <p class="selection-subtitle">
+        We'll tailor explanations and example problems to your curriculum.
+      </p>
+    </div>
+
+    <div class="level-cards">
+
+      <a href="dashboard.html?level=highschool" class="level-card">
+        <div class="level-card-icon">📐</div>
+        <h2 class="level-card-title">High School</h2>
+        <p class="level-card-desc">
+          Algebra, Geometry, Trigonometry, Pre-Calculus, and Statistics.
+        </p>
+        <span class="level-card-cta">Get Started →</span>
+      </a>
+
+      <a href="dashboard.html?level=university" class="level-card">
+        <div class="level-card-icon" style="font-family: var(--font-serif);">∫</div>
+        <h2 class="level-card-title">University</h2>
+        <p class="level-card-desc">
+          Calculus, Linear Algebra, Differential Equations, and more.
+        </p>
+        <span class="level-card-cta">Get Started →</span>
+      </a>
+
+    </div>
+
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('loaded');
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Provably — Proof Generator</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- KaTeX — for rendering mathematical equations beautifully -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    crossorigin="anonymous"
+  />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Marked.js — for rendering Markdown output -->
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Our dashboard script (deferred so CDN libs load first) -->
+  <script defer src="script.js"></script>
+</head>
+<body class="dashboard-page">
+
+  <!-- ── Navigation ──────────────────────────────────────────────── -->
+  <nav class="nav">
+    <!-- Mobile: sidebar toggle -->
+    <button
+      class="sidebar-toggle"
+      id="sidebarToggle"
+      aria-label="Toggle sidebar"
+      aria-expanded="false"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect y="3"  width="20" height="2" rx="1" fill="currentColor"/>
+        <rect y="9"  width="20" height="2" rx="1" fill="currentColor"/>
+        <rect y="15" width="20" height="2" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- Brand -->
+    <a href="index.html" class="nav-brand nav-brand-link">
+      <span class="brand-icon">∀</span>
+      <span class="brand-name">Provably</span>
+    </a>
+
+    <!-- Right: status lights -->
+    <div class="nav-right">
+      <div class="status-lights" aria-label="Model status indicator" role="status">
+        <!-- Green — Idle -->
+        <span
+          class="status-light light-idle"
+          id="lightIdle"
+          title="Idle — ready to generate a proof"
+          aria-label="Idle"
+        ></span>
+        <!-- Orange — Thinking -->
+        <span
+          class="status-light light-thinking"
+          id="lightThinking"
+          title="Thinking — generating proof…"
+          aria-label="Thinking"
+        ></span>
+        <!-- Red — Failed -->
+        <span
+          class="status-light light-failed"
+          id="lightFailed"
+          title="Failed — an error occurred"
+          aria-label="Failed"
+        ></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Dashboard Body ───────────────────────────────────────────── -->
+  <div class="dashboard-body">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar" aria-label="Session sidebar">
+
+      <!-- AI Model selection -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">AI Model</div>
+        <select
+          id="modelSelect"
+          class="model-select"
+          aria-label="Select AI model for proof generation"
+        >
+          <option value="">Loading models…</option>
+        </select>
+      </div>
+
+      <!-- New proof button -->
+      <div class="sidebar-section">
+        <button class="sidebar-new-btn" id="newProblemBtn" aria-label="Start a new proof">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          New Proof
+        </button>
+      </div>
+
+      <!-- Proof history -->
+      <div class="sidebar-section" id="historySection">
+        <div class="sidebar-label">History</div>
+        <div id="historyList">
+          <div class="sidebar-history-item sidebar-history-empty">
+            No proofs yet
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────── -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Proof display area -->
+      <div class="steps-area" id="stepsArea">
+
+        <!-- Default welcome state -->
+        <div class="welcome-state" id="welcomeState">
+          <div class="welcome-state-icon">∀</div>
+          <h2>Ready to generate a proof?</h2>
+          <p>
+            State a theorem or mathematical claim in the box below and press
+            <strong>Generate Proof</strong>.
+          </p>
+          <div class="welcome-examples" id="exampleChips">
+            <button class="example-chip" data-eq="Prove that the square root of 2 is irrational.">
+              &radic;2 is irrational
+            </button>
+            <button class="example-chip" data-eq="Prove that there are infinitely many prime numbers.">
+              Infinitely many primes
+            </button>
+            <button class="example-chip" data-eq="Let G be a group. Prove that the identity element is unique.">
+              Unique group identity
+            </button>
+            <button class="example-chip" data-eq="Prove by induction that for all n in N, 1 + 2 + ... + n = n(n+1)/2.">
+              Gauss sum formula
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /.steps-area -->
+
+      <!-- ── Input Bar ───────────────────────────────────────────── -->
+      <div class="input-bar">
+        <textarea
+          id="questionInput"
+          class="input-field input-textarea"
+          placeholder="Enter a theorem or mathematical statement…"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          rows="2"
+          aria-label="Theorem or mathematical statement"
+        ></textarea>
+        <button
+          id="solveBtn"
+          class="solve-btn"
+          aria-label="Generate Proof"
+        >
+          Generate Proof
+        </button>
+      </div>
+
+    </main>
+  </div><!-- /.dashboard-body -->
+
+  <!-- Sidebar backdrop (mobile) -->
+  <div
+    id="sidebarBackdrop"
+    style="
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 40;
+    "
+  ></div>
+
+</body>
+</html>
