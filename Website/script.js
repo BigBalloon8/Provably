@@ -1,15 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════════
-   AcademIQ — Dashboard Script
-   Handles: level detection, question submission, step rendering,
-            clarifications, history sidebar, mobile sidebar toggle.
+   Provably — Dashboard Script
+   Handles: model loading, proof generation, Markdown+Math rendering,
+            status lights, history persistence, mobile sidebar.
    ═══════════════════════════════════════════════════════════════════ */
 
 // ── Config ─────────────────────────────────────────────────────────
-const API_BASE = 'http://localhost:5000'; // Python server (server/server.py)
+const API_BASE = 'http://localhost:5000'; // Flask server (server/server.py)
 
 // ── State ───────────────────────────────────────────────────────────
-let currentLevel   = 'highschool'; // default fallback
-let problemHistory = [];           // { question, steps }[]
+let proofHistory = []; // { question, proof, model, timestamp }[]
 
 // ── DOM References ──────────────────────────────────────────────────
 const questionInput   = document.getElementById('questionInput');
@@ -17,263 +16,236 @@ const solveBtn        = document.getElementById('solveBtn');
 const stepsArea       = document.getElementById('stepsArea');
 const welcomeState    = document.getElementById('welcomeState');
 const historyList     = document.getElementById('historyList');
-const navLevelPill    = document.getElementById('navLevelPill');
-const sidebarLevelBadge = document.getElementById('sidebarLevelBadge');
-const sidebarLevelIcon  = document.getElementById('sidebarLevelIcon');
-const sidebarLevelText  = document.getElementById('sidebarLevelText');
 const newProblemBtn   = document.getElementById('newProblemBtn');
 const sidebarToggle   = document.getElementById('sidebarToggle');
 const sidebar         = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const exampleChips    = document.getElementById('exampleChips');
+const modelSelect     = document.getElementById('modelSelect');
+const lightIdle       = document.getElementById('lightIdle');
+const lightThinking   = document.getElementById('lightThinking');
+const lightFailed     = document.getElementById('lightFailed');
 
-// ── Init ────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // 1. Parse education level from URL
-  const params = new URLSearchParams(window.location.search);
-  const levelParam = params.get('level') || 'highschool';
-  setLevel(levelParam);
 
-  // 2. Page fade-in
+// ══════════════════════════════════════════════════════════════════
+// STATUS LIGHTS
+// ══════════════════════════════════════════════════════════════════
+
+/**
+ * setStatus('idle' | 'thinking' | 'failed')
+ * Illuminates exactly one light; the others are dimmed.
+ */
+function setStatus(status) {
+  lightIdle.classList.toggle('active',     status === 'idle');
+  lightThinking.classList.toggle('active', status === 'thinking');
+  lightFailed.classList.toggle('active',   status === 'failed');
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// MARKDOWN + MATH RENDERING
+// ══════════════════════════════════════════════════════════════════
+
+/**
+ * renderMarkdownMath(text) → HTML string
+ *
+ * Strategy:
+ *  1. Extract all $...$ and $$...$$ math spans, replace with null-byte
+ *     placeholders so Marked.js doesn't mangle them.
+ *  2. Run Marked.js to convert Markdown → HTML.
+ *  3. Restore each placeholder by rendering the math with KaTeX.
+ *
+ * Falls back gracefully if libraries are not yet loaded.
+ */
+function renderMarkdownMath(text) {
+  if (!text) return '';
+
+  const mathBlocks = [];
+
+  // ── Step 1: protect display math  $$...$$
+  let safe = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
+    mathBlocks.push({ display: true, expr });
+    return `\x00MATH${mathBlocks.length - 1}\x00`;
+  });
+
+  // ── Step 2: protect inline math  $...$
+  //   Negative look-behind/ahead for $ to avoid double-matches.
+  safe = safe.replace(/\$([^$\n]+?)\$/g, (_, expr) => {
+    mathBlocks.push({ display: false, expr });
+    return `\x00MATH${mathBlocks.length - 1}\x00`;
+  });
+
+  // ── Step 3: also protect \[...\] and \(...\) delimiters
+  safe = safe.replace(/\\\[([\s\S]+?)\\\]/g, (_, expr) => {
+    mathBlocks.push({ display: true, expr });
+    return `\x00MATH${mathBlocks.length - 1}\x00`;
+  });
+
+  safe = safe.replace(/\\\((.+?)\\\)/g, (_, expr) => {
+    mathBlocks.push({ display: false, expr });
+    return `\x00MATH${mathBlocks.length - 1}\x00`;
+  });
+
+  // ── Step 4: Markdown → HTML
+  let html;
+  if (typeof marked !== 'undefined') {
+    marked.setOptions({ breaks: true, gfm: true });
+    html = marked.parse(safe);
+  } else {
+    // Minimal fallback
+    html = '<p>' + safe
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>') + '</p>';
+  }
+
+  // ── Step 5: restore math placeholders via KaTeX
+  html = html.replace(/\x00MATH(\d+)\x00/g, (_, idxStr) => {
+    const { display, expr } = mathBlocks[+idxStr];
+    if (typeof katex !== 'undefined') {
+      try {
+        return katex.renderToString(expr.trim(), {
+          displayMode: display,
+          throwOnError: false,
+          output: 'html',
+        });
+      } catch (_) {
+        // KaTeX parse error — return raw source
+        return display ? `$$${expr}$$` : `$${expr}$`;
+      }
+    }
+    // KaTeX not loaded — return raw source so text is still readable
+    return display ? `$$${expr}$$` : `$${expr}$`;
+  });
+
+  return html;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Page fade-in
   document.body.classList.add('loaded');
 
-  // 3. Attach events
+  // Default state: idle (green light on)
+  setStatus('idle');
+
+  // Load available models into dropdown
+  await loadModels();
+
+  // Load persisted proof history from server
+  await loadHistory();
+
+  // ── Event listeners ────────────────────────────────────────────
   solveBtn.addEventListener('click', handleSolve);
+
+  // Ctrl+Enter or Cmd+Enter inside textarea submits
   questionInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSolve();
     }
   });
+
+  // Auto-grow textarea
+  questionInput.addEventListener('input', autoGrowTextarea);
 
   newProblemBtn.addEventListener('click', resetToWelcome);
 
   // Example chips → populate input
   exampleChips?.addEventListener('click', (e) => {
     const chip = e.target.closest('.example-chip');
-    if (chip) {
-      questionInput.value = chip.dataset.eq;
-      questionInput.focus();
-    }
+    if (!chip) return;
+    questionInput.value = chip.dataset.eq;
+    autoGrowTextarea.call(questionInput);
+    questionInput.focus();
   });
 
-  // Sidebar toggle (mobile)
+  // Mobile sidebar
   sidebarToggle.addEventListener('click', toggleSidebar);
   sidebarBackdrop.addEventListener('click', closeSidebar);
 });
 
-// ── Level Setup ─────────────────────────────────────────────────────
-function setLevel(level) {
-  currentLevel = level;
+function autoGrowTextarea() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 130) + 'px';
+}
 
-  const isUniversity = level === 'university';
-  const label = isUniversity ? 'University' : 'High School';
-  const icon  = isUniversity ? '∫' : '📐';
 
-  // Nav pill
-  navLevelPill.textContent = label;
+// ══════════════════════════════════════════════════════════════════
+// MODELS
+// ══════════════════════════════════════════════════════════════════
 
-  // Sidebar badge
-  sidebarLevelIcon.textContent = icon;
-  sidebarLevelText.textContent = label;
+async function loadModels() {
+  try {
+    const resp = await fetch(`${API_BASE}/api/models`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data   = await resp.json();
+    const models = data.models || [];
 
-  // Update page title
-  document.title = `AcademIQ — ${label} Tutor`;
-
-  // Filter example chips by level (university gets calculus chip by default)
-  if (isUniversity && exampleChips) {
-    document.querySelectorAll('.example-chip').forEach(chip => {
-      if (chip.dataset.eq === '2x + 4 = 10') chip.style.display = 'none';
+    modelSelect.innerHTML = '';
+    models.forEach((name, i) => {
+      const opt    = document.createElement('option');
+      opt.value    = name;
+      opt.textContent = name;
+      if (i === 0) opt.selected = true;
+      modelSelect.appendChild(opt);
     });
+  } catch (err) {
+    // Fallback: single placeholder so the UI still works
+    modelSelect.innerHTML = '<option value="default">Default Model</option>';
+    console.warn('[Provably] Could not load models:', err.message);
   }
 }
 
-// ── Solve Handler ────────────────────────────────────────────────────
-async function handleSolve() {
-  const question = questionInput.value.trim();
-  if (!question) {
-    questionInput.focus();
-    shakeInput();
-    return;
-  }
 
-  // Disable input while loading
-  setLoading(true);
+// ══════════════════════════════════════════════════════════════════
+// HISTORY  (server-persisted via history.json)
+// ══════════════════════════════════════════════════════════════════
 
-  // Hide welcome state; clear any previous result
-  welcomeState.style.display  = 'none';
-  clearPreviousSteps();
-
-  // Show loading indicator
-  const loadingEl = showLoading();
-
+async function loadHistory() {
   try {
-    const response = await fetch(`${API_BASE}/api/ask`, {
+    const resp = await fetch(`${API_BASE}/api/history`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    proofHistory = await resp.json();
+    renderHistorySidebar();
+  } catch (err) {
+    console.warn('[Provably] Could not load history:', err.message);
+  }
+}
+
+async function saveHistoryEntry(entry) {
+  try {
+    await fetch(`${API_BASE}/api/history`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ question, level: currentLevel }),
+      body:    JSON.stringify(entry),
     });
-
-    if (!response.ok) throw new Error(`Server error: ${response.status}`);
-
-    const steps = await response.json();
-
-    loadingEl.remove();
-    renderSteps(steps);
-
-    // Save to history
-    addToHistory(question, steps);
-
-    // Clear input for next question
-    questionInput.value = '';
-
   } catch (err) {
-    loadingEl.remove();
-    showError('Could not connect to the tutor server. Make sure server/server.py is running.');
-    console.error('[AcademIQ]', err);
-  } finally {
-    setLoading(false);
+    console.warn('[Provably] Could not save history entry:', err.message);
   }
 }
 
-// ── Render Steps ─────────────────────────────────────────────────────
-function renderSteps(steps) {
-  steps.forEach((step, index) => {
-    // For steps after the first, insert a "Reveal" button first
-    if (index > 0) {
-      const revealRow = document.createElement('div');
-      revealRow.className = 'reveal-row';
-
-      const revealBtn = document.createElement('button');
-      revealBtn.className = 'reveal-btn';
-      revealBtn.textContent = `Reveal Step ${index + 1}`;
-      revealBtn.setAttribute('aria-label', `Reveal step ${index + 1}`);
-
-      revealBtn.addEventListener('click', () => {
-        stepCard.classList.remove('step-blurred');
-        stepCard.removeAttribute('aria-hidden');
-        revealRow.remove();
-      });
-
-      revealRow.appendChild(revealBtn);
-      stepsArea.appendChild(revealRow);
-    }
-
-    // Build step card
-    const stepCard = buildStepCard(step, index);
-
-    // Blur all steps except the first
-    if (index > 0) {
-      stepCard.classList.add('step-blurred');
-      stepCard.setAttribute('aria-hidden', 'true');
-    }
-
-    stepsArea.appendChild(stepCard);
-  });
-
-  // Scroll to first step
-  stepsArea.scrollTop = 0;
-}
-
-// ── Build a Single Step Card ─────────────────────────────────────────
-function buildStepCard(step, index) {
-  const card = document.createElement('div');
-  card.className = 'step-card';
-  card.id = `step-${index}`;
-
-  // Label row
-  const header = document.createElement('div');
-  header.className = 'step-card-header';
-
-  const label = document.createElement('span');
-  label.className = 'step-card-label';
-  label.textContent = `Step ${index + 1}`;
-
-  header.appendChild(label);
-
-  // Content
-  const content = document.createElement('p');
-  content.className = 'step-card-content';
-  // Allow basic formatting; content comes from our own server so this is safe
-  content.innerHTML = step.content || step;
-
-  // Clarification button
-  const clarifyBtn = document.createElement('button');
-  clarifyBtn.className = 'clarify-btn';
-  clarifyBtn.setAttribute('aria-expanded', 'false');
-  clarifyBtn.innerHTML = `
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <circle cx="6" cy="6" r="5.25" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M6 8V6M6 4h.006" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-    I don't understand this step
-  `;
-
-  // Clarification box (hidden by default)
-  const clarifyBox = document.createElement('div');
-  const clarifyId  = `clarify-${index}`;
-  clarifyBox.className = 'clarification-box';
-  clarifyBox.id = clarifyId;
-  clarifyBox.setAttribute('aria-live', 'polite');
-
-  clarifyBtn.addEventListener('click', () =>
-    handleClarification(step.content || step, clarifyBtn, clarifyBox)
-  );
-
-  card.appendChild(header);
-  card.appendChild(content);
-  card.appendChild(clarifyBtn);
-  card.appendChild(clarifyBox);
-
-  return card;
-}
-
-// ── Clarification Request ────────────────────────────────────────────
-async function handleClarification(stepContent, btn, box) {
-  // Toggle off if already showing
-  if (box.classList.contains('visible')) {
-    box.classList.remove('visible');
-    btn.setAttribute('aria-expanded', 'false');
-    return;
-  }
-
-  box.classList.add('visible');
-  btn.setAttribute('aria-expanded', 'true');
-  box.innerHTML = `<strong>Tutor</strong>Thinking…`;
-
-  try {
-    const response = await fetch(`${API_BASE}/api/clarify`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ step: stepContent, level: currentLevel }),
-    });
-
-    if (!response.ok) throw new Error(`Server error: ${response.status}`);
-
-    const explanation = await response.text();
-    box.innerHTML = `<strong>Tutor says</strong>${explanation}`;
-
-  } catch (err) {
-    box.innerHTML = `<strong>Tutor says</strong>Could not load clarification. Check that the server is running.`;
-    console.error('[AcademIQ clarify]', err);
-  }
-}
-
-// ── History Sidebar ──────────────────────────────────────────────────
-function addToHistory(question, steps) {
-  problemHistory.unshift({ question, steps });
-
-  // Re-render history list
+function renderHistorySidebar() {
   historyList.innerHTML = '';
-  problemHistory.slice(0, 12).forEach((entry, idx) => {
+
+  if (proofHistory.length === 0) {
+    historyList.innerHTML =
+      '<div class="sidebar-history-item sidebar-history-empty">No proofs yet</div>';
+    return;
+  }
+
+  proofHistory.slice(0, 20).forEach((entry, idx) => {
     const item = document.createElement('div');
-    item.className = 'sidebar-history-item' + (idx === 0 ? ' active' : '');
-    item.textContent = truncate(entry.question, 30);
-    item.title = entry.question;
-    item.setAttribute('role', 'button');
+    item.className   = 'sidebar-history-item' + (idx === 0 ? ' active' : '');
+    item.textContent = truncate(entry.question, 34);
+    item.title       = entry.question;
+    item.setAttribute('role',     'button');
     item.setAttribute('tabindex', '0');
 
-    item.addEventListener('click', () => reloadHistoryEntry(entry, item));
+    item.addEventListener('click',   () => reloadHistoryEntry(entry, item));
     item.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') reloadHistoryEntry(entry, item);
     });
@@ -284,44 +256,165 @@ function addToHistory(question, steps) {
 
 function reloadHistoryEntry(entry, clickedItem) {
   // Mark active
-  document.querySelectorAll('.sidebar-history-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sidebar-history-item')
+    .forEach(el => el.classList.remove('active'));
   clickedItem.classList.add('active');
 
-  // Redisplay the saved steps
+  // Redisplay saved proof
   welcomeState.style.display = 'none';
-  clearPreviousSteps();
-  renderSteps(entry.steps);
-  questionInput.value = entry.question;
+  clearPreviousProof();
+  renderProof(entry.question, entry.proof);
 
   // Close sidebar on mobile
   closeSidebar();
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────
-function clearPreviousSteps() {
-  // Remove all children except the welcome state
+
+// ══════════════════════════════════════════════════════════════════
+// SOLVE / GENERATE PROOF
+// ══════════════════════════════════════════════════════════════════
+
+async function handleSolve() {
+  const question = questionInput.value.trim();
+  if (!question) {
+    shakeInput();
+    return;
+  }
+
+  const model = modelSelect.value || 'default';
+
+  // UI → loading state
+  setLoading(true);
+  setStatus('thinking');
+
+  // Clear previous result
+  welcomeState.style.display = 'none';
+  clearPreviousProof();
+  const loadingEl = showLoading();
+
+  try {
+    const response = await fetch(`${API_BASE}/api/ask`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ question, model }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      throw new Error(errBody.error || `Server error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    const proof  = result.proof;
+
+    if (!proof) throw new Error('The server returned an empty proof.');
+
+    // Render the proof
+    loadingEl.remove();
+    renderProof(question, proof);
+    setStatus('idle');
+
+    // Persist to history
+    const entry = {
+      question,
+      proof,
+      model,
+      timestamp: new Date().toISOString(),
+    };
+    await saveHistoryEntry(entry);
+    proofHistory.unshift(entry);
+    renderHistorySidebar();
+
+    // Clear input
+    questionInput.value = '';
+    questionInput.style.height = '';
+
+  } catch (err) {
+    loadingEl.remove();
+    showError(err.message || 'Could not connect to the proof server. Make sure server/server.py is running.');
+    setStatus('failed');
+    console.error('[Provably]', err);
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// PROOF RENDERING  (single continuous block — no step-by-step)
+// ══════════════════════════════════════════════════════════════════
+
+/**
+ * renderProof(question, proofText)
+ *
+ * Renders the theorem statement and the full proof as two
+ * continuous blocks with Markdown + KaTeX rendering.
+ */
+function renderProof(question, proofText) {
+  // ── Theorem / question block ──────────────────────────────────
+  const qBlock = document.createElement('div');
+  qBlock.className = 'proof-question';
+
+  const qLabel = document.createElement('span');
+  qLabel.className   = 'proof-label';
+  qLabel.textContent = 'Theorem';
+
+  const qContent = document.createElement('div');
+  qContent.innerHTML = renderMarkdownMath(question);
+
+  qBlock.appendChild(qLabel);
+  qBlock.appendChild(qContent);
+  stepsArea.appendChild(qBlock);
+
+  // ── Proof block ───────────────────────────────────────────────
+  const pBlock = document.createElement('div');
+  pBlock.className = 'proof-block';
+
+  const pLabel = document.createElement('span');
+  pLabel.className   = 'proof-label';
+  pLabel.textContent = 'Proof';
+
+  const pContent = document.createElement('div');
+  pContent.innerHTML = renderMarkdownMath(proofText);
+
+  pBlock.appendChild(pLabel);
+  pBlock.appendChild(pContent);
+  stepsArea.appendChild(pBlock);
+
+  // Scroll to top of proof
+  stepsArea.scrollTop = 0;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════
+
+function clearPreviousProof() {
   Array.from(stepsArea.children).forEach(child => {
     if (child.id !== 'welcomeState') child.remove();
   });
 }
 
 function resetToWelcome() {
-  clearPreviousSteps();
+  clearPreviousProof();
   welcomeState.style.display = '';
-  questionInput.value = '';
+  questionInput.value        = '';
+  questionInput.style.height = '';
   questionInput.focus();
-
-  document.querySelectorAll('.sidebar-history-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sidebar-history-item')
+    .forEach(el => el.classList.remove('active'));
+  setStatus('idle');
 }
 
 function showLoading() {
   const row = document.createElement('div');
   row.className = 'loading-row';
   row.innerHTML = `
-    <div class="loading-dots" aria-label="Loading">
+    <div class="loading-dots" aria-label="Generating proof">
       <span></span><span></span><span></span>
     </div>
-    <span>Working through the problem…</span>
+    <span>Generating proof…</span>
   `;
   stepsArea.appendChild(row);
   row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -336,18 +429,18 @@ function showError(message) {
   stepsArea.appendChild(row);
 }
 
-function setLoading(loading) {
-  solveBtn.disabled     = loading;
-  questionInput.disabled = loading;
-  solveBtn.textContent  = loading ? 'Solving…' : 'Solve';
+function setLoading(isLoading) {
+  solveBtn.disabled         = isLoading;
+  questionInput.disabled    = isLoading;
+  solveBtn.textContent      = isLoading ? 'Generating…' : 'Generate Proof';
 }
 
 function shakeInput() {
-  questionInput.style.transition = 'border-color 80ms';
+  questionInput.style.transition  = 'border-color 80ms';
   questionInput.style.borderColor = 'var(--error)';
   setTimeout(() => {
     questionInput.style.borderColor = '';
-    questionInput.style.transition = '';
+    questionInput.style.transition  = '';
   }, 600);
 }
 
@@ -355,10 +448,14 @@ function truncate(str, maxLen) {
   return str.length > maxLen ? str.slice(0, maxLen - 1) + '…' : str;
 }
 
-// ── Mobile Sidebar ───────────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════
+// MOBILE SIDEBAR
+// ══════════════════════════════════════════════════════════════════
+
 function toggleSidebar() {
   const isOpen = sidebar.classList.toggle('open');
-  sidebarToggle.setAttribute('aria-expanded', isOpen);
+  sidebarToggle.setAttribute('aria-expanded', String(isOpen));
   sidebarBackdrop.style.display = isOpen ? 'block' : 'none';
   document.body.style.overflow  = isOpen ? 'hidden' : '';
 }

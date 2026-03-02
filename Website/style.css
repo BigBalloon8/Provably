@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   AcademIQ — Global Stylesheet
+   Provably — Global Stylesheet
    Design: Clean, academic, minimalist
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -30,6 +30,8 @@
 
   /* Feedback */
   --success:      #4A7C59;
+  --success-light:#EDF5EF;
+  --warning:      #C07A20;
   --error:        #B04A4A;
 
   /* Typography */
@@ -297,16 +299,7 @@ img, svg {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
-.preview-card::before {
-  content: "2x + 4 = 10";
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  color: var(--text-3);
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid var(--border);
-  letter-spacing: 0.02em;
-}
+/* (::before overridden by proof-preview-card variant below) */
 
 .preview-step {
   display: flex;
@@ -1034,3 +1027,306 @@ img, svg {
     text-align: center;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   PROVABLY — NEW COMPONENTS
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Landing — Proof Preview Card ────────────────────────────────── */
+.proof-preview-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.preview-query-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.preview-query-label,
+.preview-proof-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.preview-query-label {
+  color: var(--accent);
+}
+
+.preview-proof-label {
+  color: var(--success);
+}
+
+.preview-query-block p {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.preview-proof-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.preview-proof-block p {
+  font-size: 0.86rem;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+
+/* ── Status Lights ───────────────────────────────────────────────── */
+.status-lights {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.status-light {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  /* Dimmed by default — only the active one glows */
+  opacity: 0.18;
+  transition: opacity var(--transition), box-shadow var(--transition);
+  flex-shrink: 0;
+}
+
+/* Colour definitions */
+.light-idle     { background: #34A853; } /* Google green */
+.light-thinking { background: #FF8C00; } /* Dark orange */
+.light-failed   { background: #D93025; } /* Red */
+
+/* Active state — full brightness + glow */
+.light-idle.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(52, 168, 83, 0.25), 0 0 6px rgba(52, 168, 83, 0.6);
+}
+
+.light-thinking.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.25), 0 0 6px rgba(255, 140, 0, 0.6);
+  animation: thinkingPulse 1.4s ease-in-out infinite;
+}
+
+.light-failed.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(217, 48, 37, 0.25), 0 0 6px rgba(217, 48, 37, 0.6);
+}
+
+@keyframes thinkingPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+
+/* ── Model Selector Dropdown ─────────────────────────────────────── */
+.model-select {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+  outline: none;
+  appearance: auto;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.model-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(61, 90, 128, 0.1);
+}
+
+.model-select:hover {
+  border-color: var(--border-2);
+}
+
+
+/* ── Sidebar history — empty placeholder ─────────────────────────── */
+.sidebar-history-empty {
+  color: var(--text-3);
+  font-style: italic;
+  cursor: default;
+  pointer-events: none;
+}
+
+
+/* ── Proof Output Blocks ─────────────────────────────────────────── */
+.proof-question,
+.proof-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  animation: fadeUp 300ms ease both;
+  line-height: 1.8;
+  font-size: 0.94rem;
+  color: var(--text);
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.proof-question {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-light);
+}
+
+.proof-block {
+  border-left: 3px solid var(--success);
+  background: var(--success-light);
+}
+
+/* Section labels */
+.proof-label {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.proof-question .proof-label {
+  color: var(--accent);
+}
+
+.proof-block .proof-label {
+  color: var(--success);
+}
+
+/* ── Markdown content inside proof blocks ────────────────────────── */
+.proof-question p,
+.proof-block p {
+  margin-top: 0;
+  margin-bottom: 0.65rem;
+}
+
+.proof-question p:last-child,
+.proof-block p:last-child {
+  margin-bottom: 0;
+}
+
+.proof-question strong,
+.proof-block strong {
+  font-weight: 600;
+}
+
+.proof-question em,
+.proof-block em {
+  font-style: italic;
+}
+
+.proof-question code,
+.proof-block code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.87em;
+  background: rgba(0,0,0,0.055);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.proof-question pre,
+.proof-block pre {
+  background: rgba(0,0,0,0.055);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  font-size: 0.87em;
+  margin-bottom: 0.65rem;
+}
+
+.proof-question ul,
+.proof-block ul,
+.proof-question ol,
+.proof-block ol {
+  padding-left: 1.6rem;
+  margin-bottom: 0.65rem;
+}
+
+.proof-question li,
+.proof-block li {
+  margin-bottom: 0.3rem;
+}
+
+.proof-question h1, .proof-question h2, .proof-question h3,
+.proof-block h1, .proof-block h2, .proof-block h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  margin: 0.8rem 0 0.4rem;
+  line-height: 1.3;
+}
+
+.proof-question blockquote,
+.proof-block blockquote {
+  border-left: 3px solid var(--border-2);
+  padding-left: 0.8rem;
+  color: var(--text-2);
+  margin: 0.5rem 0;
+}
+
+/* KaTeX display math spacing */
+.proof-question .katex-display,
+.proof-block .katex-display {
+  margin: 0.85rem 0;
+  overflow-x: auto;
+}
+
+/* Inline KaTeX sizing fix */
+.proof-question .katex,
+.proof-block .katex {
+  font-size: 1.05em;
+}
+
+
+/* ── Textarea input ──────────────────────────────────────────────── */
+.input-textarea {
+  resize: none;
+  min-height: 52px;
+  max-height: 130px;
+  overflow-y: auto;
+  line-height: 1.55;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+  font-family: var(--font-sans);
+}
+
+
+/* ── Responsive additions ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .status-lights {
+    gap: 5px;
+  }
+
+  .status-light {
+    width: 9px;
+    height: 9px;
+  }
+
+  .proof-question,
+  .proof-block {
+    padding: 1rem 1.15rem;
+    font-size: 0.9rem;
+  }
+}
+

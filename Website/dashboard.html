@@ -3,8 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AcademIQ — Tutor</title>
+  <title>Provably — Proof Generator</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- KaTeX — for rendering mathematical equations beautifully -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    crossorigin="anonymous"
+  />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Marked.js — for rendering Markdown output -->
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Our dashboard script (deferred so CDN libs load first) -->
+  <script defer src="script.js"></script>
 </head>
 <body class="dashboard-page">
 
@@ -17,7 +44,6 @@
       aria-label="Toggle sidebar"
       aria-expanded="false"
     >
-      <!-- Hamburger icon (pure CSS/SVG) -->
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <rect y="3"  width="20" height="2" rx="1" fill="currentColor"/>
         <rect y="9"  width="20" height="2" rx="1" fill="currentColor"/>
@@ -27,14 +53,35 @@
 
     <!-- Brand -->
     <a href="index.html" class="nav-brand nav-brand-link">
-      <span class="brand-icon">∑</span>
-      <span class="brand-name">AcademIQ</span>
+      <span class="brand-icon">∀</span>
+      <span class="brand-name">Provably</span>
     </a>
 
-    <!-- Right: level pill + change link -->
+    <!-- Right: status lights -->
     <div class="nav-right">
-      <span class="nav-level-pill" id="navLevelPill">—</span>
-      <a href="education.html" class="nav-change-link">Change level</a>
+      <div class="status-lights" aria-label="Model status indicator" role="status">
+        <!-- Green — Idle -->
+        <span
+          class="status-light light-idle"
+          id="lightIdle"
+          title="Idle — ready to generate a proof"
+          aria-label="Idle"
+        ></span>
+        <!-- Orange — Thinking -->
+        <span
+          class="status-light light-thinking"
+          id="lightThinking"
+          title="Thinking — generating proof…"
+          aria-label="Thinking"
+        ></span>
+        <!-- Red — Failed -->
+        <span
+          class="status-light light-failed"
+          id="lightFailed"
+          title="Failed — an error occurred"
+          aria-label="Failed"
+        ></span>
+      </div>
     </div>
   </nav>
 
@@ -44,32 +91,34 @@
     <!-- ── Sidebar ─────────────────────────────────────────────── -->
     <aside class="sidebar" id="sidebar" aria-label="Session sidebar">
 
-      <!-- Level badge -->
+      <!-- AI Model selection -->
       <div class="sidebar-section">
-        <div class="sidebar-label">Current Level</div>
-        <div class="level-badge" id="sidebarLevelBadge">
-          <span class="level-badge-icon" id="sidebarLevelIcon">—</span>
-          <span id="sidebarLevelText">Loading…</span>
-        </div>
+        <div class="sidebar-label">AI Model</div>
+        <select
+          id="modelSelect"
+          class="model-select"
+          aria-label="Select AI model for proof generation"
+        >
+          <option value="">Loading models…</option>
+        </select>
       </div>
 
-      <!-- New problem button -->
+      <!-- New proof button -->
       <div class="sidebar-section">
-        <button class="sidebar-new-btn" id="newProblemBtn" aria-label="Start a new problem">
+        <button class="sidebar-new-btn" id="newProblemBtn" aria-label="Start a new proof">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
-          New Problem
+          New Proof
         </button>
       </div>
 
-      <!-- Recent problems -->
+      <!-- Proof history -->
       <div class="sidebar-section" id="historySection">
-        <div class="sidebar-label">Recent Problems</div>
+        <div class="sidebar-label">History</div>
         <div id="historyList">
-          <!-- Populated dynamically by script.js -->
-          <div class="sidebar-history-item" style="color: var(--text-3); font-style: italic; cursor: default;">
-            No problems yet
+          <div class="sidebar-history-item sidebar-history-empty">
+            No proofs yet
           </div>
         </div>
       </div>
@@ -79,45 +128,53 @@
     <!-- ── Main Content ─────────────────────────────────────────── -->
     <main class="main-content" id="mainContent">
 
-      <!-- Steps / results area -->
+      <!-- Proof display area -->
       <div class="steps-area" id="stepsArea">
 
         <!-- Default welcome state -->
         <div class="welcome-state" id="welcomeState">
-          <div class="welcome-state-icon">∑</div>
-          <h2>Ready to solve a problem?</h2>
+          <div class="welcome-state-icon">∀</div>
+          <h2>Ready to generate a proof?</h2>
           <p>
-            Type an equation or question in the box below and press
-            <strong>Solve</strong>. I'll walk you through it step by step.
+            State a theorem or mathematical claim in the box below and press
+            <strong>Generate Proof</strong>.
           </p>
           <div class="welcome-examples" id="exampleChips">
-            <button class="example-chip" data-eq="2x + 4 = 10">2x + 4 = 10</button>
-            <button class="example-chip" data-eq="x² - 5x + 6 = 0">x² - 5x + 6 = 0</button>
-            <button class="example-chip" data-eq="sin(x) = 0.5">sin(x) = 0.5</button>
-            <button class="example-chip" data-eq="d/dx [x³ + 2x]">d/dx [x³ + 2x]</button>
+            <button class="example-chip" data-eq="Prove that the square root of 2 is irrational.">
+              &radic;2 is irrational
+            </button>
+            <button class="example-chip" data-eq="Prove that there are infinitely many prime numbers.">
+              Infinitely many primes
+            </button>
+            <button class="example-chip" data-eq="Let G be a group. Prove that the identity element is unique.">
+              Unique group identity
+            </button>
+            <button class="example-chip" data-eq="Prove by induction that for all n in N, 1 + 2 + ... + n = n(n+1)/2.">
+              Gauss sum formula
+            </button>
           </div>
         </div>
 
-      </div>
+      </div><!-- /.steps-area -->
 
       <!-- ── Input Bar ───────────────────────────────────────────── -->
       <div class="input-bar">
-        <input
-          type="text"
+        <textarea
           id="questionInput"
-          class="input-field"
-          placeholder="Enter an equation or question…"
-          autocomplete="off"
+          class="input-field input-textarea"
+          placeholder="Enter a theorem or mathematical statement…"
           autocorrect="off"
+          autocapitalize="off"
           spellcheck="false"
-          aria-label="Math question input"
-        />
+          rows="2"
+          aria-label="Theorem or mathematical statement"
+        ></textarea>
         <button
           id="solveBtn"
           class="solve-btn"
-          aria-label="Solve"
+          aria-label="Generate Proof"
         >
-          Solve
+          Generate Proof
         </button>
       </div>
 
@@ -125,14 +182,15 @@
   </div><!-- /.dashboard-body -->
 
   <!-- Sidebar backdrop (mobile) -->
-  <div id="sidebarBackdrop" style="
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.25);
-    z-index: 40;
-  "></div>
-
-  <script src="script.js"></script>
+  <div
+    id="sidebarBackdrop"
+    style="
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 40;
+    "
+  ></div>
 
 </body>
 </html>
