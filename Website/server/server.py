@@ -31,11 +31,17 @@ WEB_ROOT   = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Data files live alongside server.py in New/server/
-HISTORY_FILE = os.path.join(SERVER_DIR, 'history.json')
-MODELS_FILE  = os.path.join(SERVER_DIR, 'available_models.json')
+HISTORY_FILE      = os.path.join(SERVER_DIR, 'history.json')
+MODELS_FILE       = os.path.join(SERVER_DIR, 'available_models.json')
+LEAN_MODELS_FILE  = os.path.join(SERVER_DIR, 'available_lean_models.json')
 
 # External proof generation API (API.py / FastAPI on port 8000)
 PROOF_API_BASE = 'http://127.0.0.1:8000'
+
+# Lean verification settings
+LEAN_ATTEMPTS   = 3      # how many times the Lean model tries to write the Lean proof
+CLAUDE_FIX      = False  # whether Claude attempts to patch Lean syntax errors
+MAX_NL_RETRIES  = 3      # how many NL proofs to generate before giving up
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -81,7 +87,7 @@ def serve_static(filename):
 @app.route('/api/models', methods=['GET'])
 def api_models():
     """
-    Returns the list of available AI models from available_models.json.
+    Returns the list of available NL AI models from available_models.json.
     The front-end populates its model-selector dropdown from this endpoint.
     """
     try:
@@ -92,6 +98,22 @@ def api_models():
         return jsonify({'error': 'available_models.json not found'}), 404
     except json.JSONDecodeError:
         return jsonify({'error': 'available_models.json is malformed'}), 500
+
+
+@app.route('/api/lean-models', methods=['GET'])
+def api_lean_models():
+    """
+    Returns the list of available Lean verification models from available_lean_models.json.
+    The front-end populates its lean model-selector dropdown from this endpoint.
+    """
+    try:
+        with open(LEAN_MODELS_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({'error': 'available_lean_models.json not found'}), 404
+    except json.JSONDecodeError:
+        return jsonify({'error': 'available_lean_models.json is malformed'}), 500
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -145,47 +167,76 @@ def api_history_post():
 @app.route('/api/ask', methods=['POST'])
 def api_ask():
     """
-    Forwards a proof-generation request to the Provably FastAPI server
-    running on port 8000 (see 'API to implement/API.py').
+    Generates a natural-language proof and verifies it with Lean.
+    Retries NL generation up to MAX_NL_RETRIES times until Lean confirms the
+    proof is valid.  Only returns a proof to the frontend once verified —
+    this is what keeps the traffic light green only for correct proofs.
 
     Receives:
-        { "question": "Prove that √2 is irrational.", "model": "claude-sonnet-..." }
+        {
+          "question":   "Prove that √2 is irrational.",
+          "model":      "claude-sonnet-...",   (NL model)
+          "lean_model": "aristotle"            (Lean verification model, optional)
+        }
 
     Returns:
-        { "proof": "<full proof text in Markdown/LaTeX>" }
+        { "proof": "<verified proof text in Markdown/LaTeX>" }
 
-    The external API endpoint used is:
-        POST http://127.0.0.1:8000/nl/
-        Body: { "query": <question>, "model": <model> }
-        Response: { "proof": <proof string> }
+    External API endpoints used (port 8000):
+        POST /nl/           { query, model }                         → { proof }
+        POST /lean-verify/  { proof, model, lean_attempts, claude_fix_this } → { valid }
     """
-    data     = request.get_json(silent=True) or {}
-    question = data.get('question', '').strip()
-    model    = data.get('model', 'claude-sonnet-4-5-20250929').strip()
+    data       = request.get_json(silent=True) or {}
+    question   = data.get('question', '').strip()
+    model      = data.get('model', 'claude-sonnet-4-5-20250929').strip()
+    lean_model = data.get('lean_model', 'aristotle').strip()
 
     if not question:
         return jsonify({'error': 'No question provided'}), 400
 
-    # ── Forward to Provably proof-generation API ────────────────────
-    nl_payload = {
-        'query': question,
-        'model': model,
-    }
+    nl_payload = {'query': question, 'model': model}
 
     try:
-        resp = http_requests.post(
-            f'{PROOF_API_BASE}/nl/',
-            json=nl_payload,
-            timeout=120,          # proof generation can take up to 2 minutes (ok for claude/nl?)
-        )
-        resp.raise_for_status()
-        result = resp.json()
-        proof  = result.get('proof', '')
+        for attempt in range(1, MAX_NL_RETRIES + 1):
 
-        if not proof:
-            return jsonify({'error': 'The proof API returned an empty response.'}), 502
+            # ── Step 1: Generate natural-language proof ──────────────
+            nl_resp = http_requests.post(
+                f'{PROOF_API_BASE}/nl/',
+                json=nl_payload,
+                timeout=120,
+            )
+            nl_resp.raise_for_status()
+            proof = nl_resp.json().get('proof', '')
 
-        return jsonify({'proof': proof})
+            if not proof:
+                return jsonify({'error': 'The proof API returned an empty response.'}), 502
+
+            # ── Step 2: Verify with Lean ─────────────────────────────
+            verify_payload = {
+                'proof':          proof,
+                'model':          lean_model,
+                'lean_attempts':  LEAN_ATTEMPTS,
+                'claude_fix_this': CLAUDE_FIX,
+            }
+            verify_resp = http_requests.post(
+                f'{PROOF_API_BASE}/lean-verify/',
+                json=verify_payload,
+                timeout=1200,   # Lean compilation can be slow
+            )
+            verify_resp.raise_for_status()
+            valid = verify_resp.json().get('valid', False)
+
+            if valid:
+                return jsonify({'proof': proof})
+
+            # Not valid — loop and try a new NL proof (up to MAX_NL_RETRIES)
+
+        return jsonify({
+            'error': (
+                f'Could not produce a Lean-verified proof after {MAX_NL_RETRIES} attempt(s). '
+                'Try a different model or rephrase the theorem.'
+            )
+        }), 422
 
     except http_requests.exceptions.ConnectionError:
         return jsonify({
@@ -197,7 +248,7 @@ def api_ask():
 
     except http_requests.exceptions.Timeout:
         return jsonify({
-            'error': 'Proof generation timed out (>120 s). Try a simpler statement or a faster model.'
+            'error': 'Proof generation or verification timed out. Try a simpler statement or a faster model.'
         }), 504
 
     except http_requests.exceptions.HTTPError as e:
@@ -218,10 +269,11 @@ if __name__ == '__main__':
     print('  ║   http://localhost:5000                           ║')
     print('  ║                                                   ║')
     print('  ║   API endpoints:                                  ║')
-    print('  ║     GET  /api/models   ← available AI models      ║')
-    print('  ║     GET  /api/history  ← proof history            ║')
-    print('  ║     POST /api/history  ← save proof entry         ║')
-    print('  ║     POST /api/ask      ← generate proof           ║')
+    print('  ║     GET  /api/models        ← NL AI models        ║')
+    print('  ║     GET  /api/lean-models   ← Lean verify models  ║')
+    print('  ║     GET  /api/history       ← proof history       ║')
+    print('  ║     POST /api/history       ← save proof entry    ║')
+    print('  ║     POST /api/ask           ← generate+verify     ║')
     print('  ║                                                   ║')
     print('  ║   Requires: proof API on http://127.0.0.1:8000    ║')
     print('  ╚═══════════════════════════════════════════════════╝')

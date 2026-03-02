@@ -1,0 +1,7 @@
+{
+  "models": [
+    "aristotle",
+    "deepseek-ai/DeepSeek-Prover-V2-7B",
+    "deepseek-ai/DeepSeek-Prover-V1.5-7B"
+  ]
+}

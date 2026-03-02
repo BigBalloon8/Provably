@@ -71,7 +71,7 @@
         <span
           class="status-light light-thinking"
           id="lightThinking"
-          title="Thinking — generating proof…"
+          title="Thinking — generating &amp; verifying proof…"
           aria-label="Thinking"
         ></span>
         <!-- Red — Failed -->
@@ -91,13 +91,25 @@
     <!-- ── Sidebar ─────────────────────────────────────────────── -->
     <aside class="sidebar" id="sidebar" aria-label="Session sidebar">
 
-      <!-- AI Model selection -->
+      <!-- NL Model selection -->
       <div class="sidebar-section">
         <div class="sidebar-label">AI Model</div>
         <select
           id="modelSelect"
           class="model-select"
           aria-label="Select AI model for proof generation"
+        >
+          <option value="">Loading models…</option>
+        </select>
+      </div>
+
+      <!-- Lean verification model selection -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Lean Model</div>
+        <select
+          id="leanModelSelect"
+          class="model-select"
+          aria-label="Select Lean model for proof verification"
         >
           <option value="">Loading models…</option>
         </select>
