@@ -8,33 +8,23 @@ logging.set_verbosity_error()
 
 import os
 import argparse
+import json
+
 
 if os.path.exists("AI/.env"):
     import dotenv
     dotenv.load_dotenv("AI/.env")
 
-def main(args):
-    with open("Solution/solution.lean", "w") as file:
-        file.write("")
+def get_solution(question, args):
+    with open("Solution/solution.lean", "w") as f:
+        f.write("")
     
+    query = question["question_text"]
+
     logger = get_logger()
     LEAN_ATTEMPTS=3
-
-    if "ANTHROPIC_API_KEY" not in os.environ.keys() and args.nl == "anthropic":
-        os.environ["ANTHROPIC_API_KEY"] = input("Enter Claude API Key:").strip()    
-    if "ARISTOTLE_API_KEY" not in os.environ.keys() and args.lean == "aristotle":
-        os.environ["ARISTOTLE_API_KEY"] = input("Enter Aristotle API Key:").strip()
-
-    # Query
-    query = input("Enter Maths Claim: ")
-    if query == "".strip(" "):
-        query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
-        #query = r"Let x be a real number with 0 < x < 1 and let (a_n)n∈N be a sequence of positive real numbers such that, for all n, \frac{a_{n+1}}{a_n}<x. Prove the series \sum^\infty_{n=1}a_n converges."
-        #query = r"Let G be a group, prove the following are equivalent\n1. G is abelian\n2. For all g,h \in G $(g * h)^2 = g^2 * h^2$"
-        print(f"No user question given using: {query}")
     
     logger.info(query)
-    
 
     NL_correctness = False
 
@@ -62,11 +52,35 @@ def main(args):
 
         # check lean and NL are the same
         NL_correctness = verify_equality(response)
+    
+
+    if os.path.exists("benchmark_solutions.json"):
+        with open("benchmark_solutions.json", "r") as f:
+            solutions = json.load(f)
+    else:
+        solutions = {}
+
+    with open("Solution/solution.lean", "r") as f:
+        lean4 = f.read()
         
-    print(response)
+    solutions[question["id"]] = {"NL": response, "lean": lean4}
 
+    with open("benchmark_solutions.json", "w") as f:
+        json.dump(solutions, f)
 
-    #print(get_proof("Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."))
+def main(args):
+    file = os.path.join(os.path.dirname(__file__),"benchmark_questions.json")
+    with open(file, "r") as f:
+        questions = json.load(f)
+    if os.path.exists("benchmark_solutions.json"):
+        with open("benchmark_solutions.json", "r") as f:
+            solutions = json.load(f)
+    else:
+        solutions = {}
+    for q in questions:
+        if q["id"] not in solutions.keys():
+            get_solution(q, args)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

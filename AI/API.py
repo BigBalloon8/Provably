@@ -42,7 +42,7 @@ async def nl_solution(nlquery: NLQuery):
 
 
 @provablyAPI.post("/lean-verify/")
-async def create_item(verifyquery: VerifyQuery):
+async def lean_verify(verifyquery: VerifyQuery):
     with open(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"), "w") as file:
         file.write("")
     
@@ -58,3 +58,12 @@ async def create_item(verifyquery: VerifyQuery):
 
     NL_correctness = verify_equality(verifyquery.proof)
     return {"valid": NL_correctness and verify_lean_file(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"))}
+
+
+@provablyAPI.get("/lean/")
+async def get_lean():
+    with open(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"), "r") as file:
+        lean_4 = file.read()
+
+    return {"lean_code": lean_4}
+    
