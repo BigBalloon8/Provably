@@ -30,9 +30,7 @@ Write the guide with the following code included
 import Mathlib
 import Aesop
 
-set_option maxHeartbeats 0
-
-open BigOperators Real Nat Topology Rat
+set_option maxHeartbeats 0\n
 ```
 Provide a detailed proof plan outlining the main proof steps and strategies. The plan should highlight key ideas, intermediate lemmas, \
 and proof structures that will guide the construction of the final formal proof.
@@ -43,9 +41,7 @@ imports = """
 import Mathlib
 import Aesop
 
-set_option maxHeartbeats 0
-
-open BigOperators Real Nat Topology Rat\n
+set_option maxHeartbeats 0\n
 """.strip()
 #-----------------------------------------------------------------------------------------------------
 
@@ -114,7 +110,10 @@ def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logg
         if i > 0 and claude_fix_this:
             out = query_claude(seq, model="claude-opus-4-6")
         else:
-            out = run_transformer_lean(seq, model_id)
+            if "claude" in model_id:
+                out = query_claude(seq, model=model_id)
+            else:
+                out = run_transformer_lean(seq, model_id)
         
         if logger is not None:
             logger.info(out.replace("```<｜end▁of▁sentence｜>", "```\n<｜end▁of▁sentence｜>"))

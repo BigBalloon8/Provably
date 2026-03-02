@@ -1,0 +1,546 @@
+[
+  {
+    "id": "PPS-001",
+    "question_text": "Use induction to prove that $3^n \\\\leqslant 3^{n+1} - 3^{n-1} - 1$, for every $n \\\\in \\\\mathbb{N}$."
+  },
+  {
+    "id": "PPS-002",
+    "question_text": "Using the $\\\\epsilon-N$ definition of a limit, prove that $\\\\lim_{n \\\\to \\\\infty} \\\\frac{2n^2 + 4}{5n^2} = \\\\frac{2}{5}$."
+  },
+  {
+    "id": "PPS-003",
+    "question_text": "Prove that the following set has a least upper bound: $\\\\{x \\\\in \\\\mathbb{R} : 2x^5 - 3x^2 - 7 < 0\\\\}$."
+  },
+  {
+    "id": "PPS-004",
+    "question_text": "Prove that, for every $x \\\\in \\\\mathbb{Z}$, $2x - 1$ and $2x + 3$ are coprime."
+  },
+  {
+    "id": "FPM-005",
+    "question_text": "Let $G = \\\\{(a, b) : a, b \\\\in \\\\mathbb{R} \\\\text{ and } b \\\\neq 0\\\\}$. For $(a_1, b_1), (a_2, b_2)$ in $G$ define $(a_1, b_1) * (a_2, b_2) = (a_1 + b_1a_2, b_1b_2)$. Prove that $(G, *)$ is a group. Is it abelian?"
+  },
+  {
+    "id": "FPM-006",
+    "question_text": "Let $G$ and $H$ be finite groups and $\\\\theta : G \\\\to H$ be a homomorphism. Prove that $|G| = |\\\\ker(\\\\theta)| |\\\\operatorname{im}(\\\\theta)|$."
+  },
+  {
+    "id": "FPM-007",
+    "question_text": "Let $G$ be a group and define $\\\\theta : G \\\\to G$ by $\\\\theta(g) = g^{-1}$. Prove that $\\\\theta$ is a homomorphism if and only if $G$ is abelian."
+  },
+  {
+    "id": "FPM-008",
+    "question_text": "Let $(x_n)_{n \\\\in \\\\mathbb{N}}$ be a convergent sequence of real numbers with $x_n \\\\to L$ as $n \\\\to +\\\\infty$, where $L > 0$. Prove that the series $\\\\sum_{n=1}^{\\\\infty} \\\\frac{1}{n^{1+x_n}}$ converges."
+  },
+  {
+    "id": "HAN-009",
+    "question_text": "Suppose that $(x_n)_{n \\\\in \\\\mathbb{N}}$ is a Cauchy sequence such that $x_n \\\\in \\\\mathbb{Z}$ for all $n \\\\in \\\\mathbb{N}$. Prove that $(x_n)_{n \\\\in \\\\mathbb{N}}$ is eventually constant: that is, there exists $a \\\\in \\\\mathbb{Z}$ and $N \\\\in \\\\mathbb{N}$ such that $x_n = a$ for all $n \\\\geq N$."
+  },
+  {
+    "id": "HAN-010",
+    "question_text": "Let $I \\\\subseteq \\\\mathbb{R}$ be an open interval and $f : I \\\\to \\\\mathbb{R}$ be differentiable with bounded derivative. Prove that $f$ is uniformly continuous."
+  },
+  {
+    "id": "HAN-011",
+    "question_text": "Suppose $F, K \\\\subseteq \\\\mathbb{R}$ are nonempty closed sets with $K$ bounded and $\\\\operatorname{dist}(F, K) = 0$. Using the Bolzano-Weierstrass theorem, show that $F \\\\cap K \\\\neq \\\\emptyset$."
+  },
+  {
+    "id": "HAN-012",
+    "question_text": "Let $a < b$ and suppose that $f_n : [a, b] \\\\to \\\\mathbb{R}$ is a sequence of non-negative continuous functions which is monotone non-increasing in the sense that $f_n(x) \\\\geq f_{n+1}(x) \\\\geq 0$ for all $x \\\\in [a, b]$ and all $n \\\\in \\\\mathbb{N}$. And that $f_n \\\\to 0$ pointwise on $[a, b]$ as $n \\\\to \\\\infty$. Prove that $f_n \\\\to 0$ uniformly on $[a, b]$ as $n \\\\to \\\\infty$."
+  },
+  {
+    "id": "HAL-013",
+    "question_text": "Let $U, W$ be 6-dimensional subspaces of $\\\\mathbb{R}^{11}$. Show that $U \\\\cap W \\\\neq \\\\{0\\\\}$."
+  },
+  {
+    "id": "HAL-014",
+    "question_text": "Prove that for a finite dimensional vector space, its dual vector space has the same dimension."
+  },
+  {
+    "id": "HAL-015",
+    "question_text": "Prove Fermat's Little Theorem."
+  },
+  {
+    "id": "HAL-016",
+    "question_text": "Prove that $\\\\mathbb{F}_p^{\\\\times}$ (the group of units of the field $\\\\mathbb{F}_p$) is a cyclic group."
+  },
+  {
+    "id": "PPS-017",
+    "question_text": "Let $A$, $B$ and $C$ be subsets of a set $X$. Is it necessarily true that $A \\\\cup (B \\\\cap C) \\\\subseteq (A \\\\cup B) \\\\cap C$? Give a proof or counterexample."
+  },
+  {
+    "id": "PPS-018",
+    "question_text": "Let $A$, $B$ and $C$ be subsets of a set $X$. Is it necessarily true that $(A \\\\cup B) \\\\cap C \\\\subseteq A \\\\cup (B \\\\cap C)$? Give a proof or counterexample."
+  },
+  {
+    "id": "PPS-019",
+    "question_text": "Let $A$, $B$ and $C$ be subsets of a set $X$. Prove that if $A \\\\subseteq C$ then $A \\\\cup (B \\\\cap C) = (A \\\\cup B) \\\\cap C$."
+  },
+  {
+    "id": "PPS-020",
+    "question_text": "Find the value of the limit $\\\\lim_{n \\\\to \\\\infty} \\\\frac{5n^3 + 3n}{\\\\sin(n) + 4n^2 + 2n^3}$ and prove your answer using the $\\\\epsilon-N$ definition of a limit (without using any rules for limits)."
+  },
+  {
+    "id": "PPS-021",
+    "question_text": "Let $(a_n)_{n=1}^{\\\\infty}$ be a sequence that diverges to infinity. Let $(b_n)_{n=1}^{\\\\infty}$ be a sequence such that, for all $n \\\\in \\\\mathbb{N}$, $b_n \\\\ge -7$. Prove that $(a_n + b_n)_{n=1}^{\\\\infty}$ is a sequence that diverges to infinity."
+  },
+  {
+    "id": "PPS-022",
+    "question_text": "Consider the iterative sequence $(a_n)_{n=1}^{\\\\infty}$ defined by $a_1 = \\\\frac{1}{3}$, $a_2 = \\\\frac{2}{3}$ and $a_n = \\\\frac{1}{3}a_{n-1} + \\\\sqrt{a_{n-2}}$ for integers $n \\\\ge 3$. Prove that the sequence $(a_n)_{n=1}^{\\\\infty}$ is increasing."
+  },
+  {
+    "id": "PPS-023",
+    "question_text": "Consider the iterative sequence $(a_n)_{n=1}^{\\\\infty}$ defined by $a_1 = \\\\frac{1}{3}$, $a_2 = \\\\frac{2}{3}$ and $a_n = \\\\frac{1}{3}a_{n-1} + \\\\sqrt{a_{n-2}}$ for integers $n \\\\ge 3$. Prove that the sequence $(a_n)_{n=1}^{\\\\infty}$ is bounded above by $\\\\frac{9}{4}$."
+  },
+  {
+    "id": "PPS-024",
+    "question_text": "Consider the iterative sequence $(a_n)_{n=1}^{\\\\infty}$ defined by $a_1 = \\\\frac{1}{3}$, $a_2 = \\\\frac{2}{3}$ and $a_n = \\\\frac{1}{3}a_{n-1} + \\\\sqrt{a_{n-2}}$ for integers $n \\\\ge 3$. Prove that the sequence $(a_n)_{n=1}^{\\\\infty}$ converges and find its limit $L$."
+  },
+  {
+    "id": "PPS-025",
+    "question_text": "If $p \\\\notin \\\\{2, 5\\\\}$ is prime and $n$ is the smallest natural number such that $10^n = 1 \\\\mod p$, prove that $\\\\frac{1}{p}$ has a decimal expansion with period $n$."
+  },
+  {
+    "id": "PPS-026",
+    "question_text": "Are there any solutions to the equation $12x = 9 \\\\mod 17$? Prove your answer."
+  },
+  {
+    "id": "PPS-027",
+    "question_text": "Are there any integer solutions to the equation $x^6 + 5x^5 + 10x^4 + 25x^3 + 15x^2 + 5x + 3 = 0$? Prove your answer."
+  },
+  {
+    "id": "PPS-028",
+    "question_text": "Let $p_1$ and $p_2$ be prime. Let $n = p_1 p_2$. Are there any solutions $x \\\\in \\\\{0, \\\\dots, n-1\\\\}$ to the equation $p_1 x = 1 \\\\mod n$? Prove your answer."
+  },
+  {
+    "id": "PPS-029",
+    "question_text": "Consider the following identity: $\\\\sum_{t=0}^{n-k} \\\\binom{n+t}{t} = \\\\sum_{t=k}^{n} \\\\binom{n+t-k}{n}$, where $n \\\\in \\\\mathbb{N}$ and $k \\\\in \\\\{0, 1, \\\\dots, n\\\\}$. Prove the above identity using an algebraic argument."
+  },
+  {
+    "id": "PPS-030",
+    "question_text": "Consider the following identity: $\\\\sum_{t=0}^{n-k} \\\\binom{n+t}{t} = \\\\sum_{t=k}^{n} \\\\binom{n+t-k}{n}$, where $n \\\\in \\\\mathbb{N}$ and $k \\\\in \\\\{0, 1, \\\\dots, n\\\\}$. Prove the above identity using a combinatorial argument."
+  },
+  {
+    "id": "PPS-031",
+    "question_text": "Let $R$ and $S$ be equivalence relations on a set $X$. Let $T$ be the relation on $X$ defined by $T = \\\\{(x, y) \\\\in X \\\\times X : xRy \\\\text{ and } xSy\\\\}$. Prove that $T$ is an equivalence relation."
+  },
+  {
+    "id": "PPS-032",
+    "question_text": "Show that if $x$ is an integer, then $\\\\gcd(x + 1, x^2 - x + 1)$ divides $3$."
+  },
+  {
+    "id": "PPS-033",
+    "question_text": "Prove the inequality $(a_1b_1 + a_2b_2 + \\\\dots + a_nb_n)^2 \\\\leq (a_1^2 + a_2^2 + \\\\dots + a_n^2)(b_1^2 + b_2^2 + \\\\dots + b_n^2)$ for all $a_k, b_k \\\\in \\\\mathbb{R}$, $1 \\\\leq k \\\\leq n$."
+  },
+  {
+    "id": "PPS-034",
+    "question_text": "Show that for all complex numbers $z$ and $w$, $|z - w|^2 + |z + w|^2 = 2|z|^2 + 2|w|^2$."
+  },
+  {
+    "id": "PPS-035",
+    "question_text": "Prove by induction that $\\\\sum_{k=1}^n \\\\frac{1}{k^2} \\\\leq 2 - \\\\frac{1}{n}$ for all $n \\\\in \\\\mathbb{N}$."
+  },
+  {
+    "id": "PPS-036",
+    "question_text": "By induction, prove that $\\\\sum_{k=1}^{n}\\\\frac{1}{\\\\sqrt{k}}\\\\ge\\\\sqrt{n}$, for every integer $n\\\\ge1$."
+  },
+  {
+    "id": "PPS-037",
+    "question_text": "Does the infinite series $\\\\sum_{k=1}^{\\\\infty}\\\\frac{1}{\\\\sqrt{k}}$ converge? Justify your answer."
+  },
+  {
+    "id": "PPS-038",
+    "question_text": "Find the value of the following limit: $\\\\lim_{n\\\\rightarrow\\\\infty}\\\\frac{2n^{2}+4n-3}{4n^{2}-3n\\\\cos(n)}$. Prove your answer using the $\\\\epsilon-N$ definition of a limit (without using any rules for limits)."
+  },
+  {
+    "id": "PPS-039",
+    "question_text": "A complex-valued sequence $(z_n)_{n=1}^{\\\\infty}$ is defined to converge to a limit $w\\\\in\\\\mathbb{C}$ if for every $\\\\epsilon>0$, there is an $N>0$ such that for every $n>N$, $|z_n-w|<\\\\epsilon$. Prove that if $(z_n)_{n=1}^{\\\\infty}$ converges to a limit $w\\\\in\\\\mathbb{C}$ then the real-valued sequence $(x_n)_{n=1}^{\\\\infty}$ converges to $u$, where $x_n$ denotes the real part of $z_n$ for each $n\\\\in\\\\mathbb{N}$ and $u$ denotes the real part of $w$."
+  },
+  {
+    "id": "PPS-040",
+    "question_text": "Does there exist at least one solution to $2023x=20 \\\\mod 23$? Give a proof."
+  },
+  {
+    "id": "PPS-041",
+    "question_text": "Show that $x=8$ is a solution to $x^{2023}+20=0 \\\\mod 23$."
+  },
+  {
+    "id": "PPS-042",
+    "question_text": "For the equation $x^{100}+3x^{99}+45x^{50}+9x^{2}+27x+1=0$, are there any integer solutions? Give a proof."
+  },
+  {
+    "id": "PPS-043",
+    "question_text": "Using a combinatorial argument, prove that $\\\\binom{2n}{n}=\\\\sum_{t=0}^{n}\\\\binom{n}{t}^{2}$, for every $n\\\\in\\\\mathbb{N}$."
+  },
+  {
+    "id": "PPS-044",
+    "question_text": "Let $A$, $X$ and $Y$ be sets. Given functions $f:A\\\\rightarrow X$ and $g:A\\\\rightarrow Y$ we can define a function $(f,g): A \\\\rightarrow X \\\\times Y$ by $(f,g)(a)=(f(a),g(a))$ for all $a\\\\in A$. If $f$ and $g$ are injective, must $(f,g)$ be injective? Give a proof or counterexample."
+  },
+  {
+    "id": "PPS-045",
+    "question_text": "Let $A$, $X$ and $Y$ be sets. Given functions $f:A\\\\rightarrow X$ and $g:A\\\\rightarrow Y$ we can define a function $(f,g): A \\\\rightarrow X \\\\times Y$ by $(f,g)(a)=(f(a),g(a))$ for all $a\\\\in A$. If $f$ and $g$ are surjective, must $(f,g)$ be surjective? Give a proof or counterexample."
+  },
+  {
+    "id": "PPS-046",
+    "question_text": "Let $A$, $X$ and $Y$ be sets. Given functions $f:A\\\\rightarrow X$ and $g:A\\\\rightarrow Y$ we can define a function $(f,g): A \\\\rightarrow X \\\\times Y$ by $(f,g)(a)=(f(a),g(a))$ for all $a\\\\in A$. Given subsets $S\\\\subseteq X$ and $T\\\\subseteq Y$ prove that $(f,g)^{-1}(S\\\\times T)=f^{-1}(S)\\\\cap g^{-1}(T)$."
+  },
+  {
+    "id": "FPM-047",
+    "question_text": "Prove that for all integers $x$ and $y$, $2x^2 + 3y^2 \\\\equiv 0 \\\\pmod{17}$ if and only if $x \\\\equiv y \\\\equiv 0 \\\\pmod{17}$."
+  },
+  {
+    "id": "FPM-048",
+    "question_text": "Prove that there are no integer solutions to the equation $2x^2 + 3y^2 = 170000003$."
+  },
+  {
+    "id": "FPM-049",
+    "question_text": "Suppose that $a$ and $b$ are integers and that $p = ab - 1$ is a prime number. Prove that either $a = 1$ or $b = 1$."
+  },
+  {
+    "id": "FPM-050",
+    "question_text": "Let $A$, $B$, and $C$ be sets. Prove that $A \\\\cup (B \\\\cap C) = (A \\\\cup B) \\\\cap (A \\\\cup C)$."
+  },
+  {
+    "id": "FPM-051",
+    "question_text": "Let $A$ and $B$ be subsets of a set $X$. The symmetric difference of $A$ and $B$ is defined by $A \\\\Delta B = (A \\\\setminus B) \\\\cup (B \\\\setminus A)$. Prove that $(A \\\\Delta B) \\\\Delta A = B$."
+  },
+  {
+    "id": "FPM-052",
+    "question_text": "Let $f : \\\\mathbb{R} \\\\to \\\\mathbb{R}$ and $g : \\\\mathbb{R} \\\\to \\\\mathbb{R}$ be bounded functions. Prove that the function $f + g$ is bounded."
+  },
+  {
+    "id": "FPM-053",
+    "question_text": "Let $G$ and $H$ be groups, and let $\\\\phi : G \\\\to H$ be a group homomorphism. Prove that the kernel of $\\\\phi$, $\\\\ker(\\\\phi)$, is a subgroup of $G$."
+  },
+  {
+    "id": "FPM-054",
+    "question_text": "Prove that the sum of a rational number and an irrational number is irrational."
+  },
+  {
+    "id": "FPM-055",
+    "question_text": "Prove or disprove: The product of two irrational numbers is irrational."
+  },
+  {
+    "id": "FPM-056",
+    "question_text": "Prove that if $n$ is an even integer, then $n^2$ is an even integer."
+  },
+  {
+    "id": "FPM-057",
+    "question_text": "Prove that if $n^2$ is an even integer, then $n$ is an even integer."
+  },
+  {
+    "id": "FPM-058",
+    "question_text": "Let $x$ and $y$ be real numbers. Prove that $x = y$ if and only if for every real number $\\\\epsilon > 0$, $|x - y| \\\\le \\\\epsilon$."
+  },
+  {
+    "id": "FPM-059",
+    "question_text": "Prove that $\\\\sqrt{2}$ is irrational."
+  },
+  {
+    "id": "FPM-060",
+    "question_text": "Prove that $\\\\sqrt[3]{2}$ is irrational."
+  },
+  {
+    "id": "FPM-061",
+    "question_text": "Prove that there exist irrational numbers $a$ and $b$ such that $a^b$ is rational."
+  },
+  {
+    "id": "FPM-062",
+    "question_text": "Let $A$ and $B$ be subsets of a universal set $U$. Prove that $A \\\\setminus B = A \\\\cap B^c$."
+  },
+  {
+    "id": "FPM-063",
+    "question_text": "Let $A$, $B$, and $C$ be sets. Prove that $A \\\\cap (B \\\\cup C) = (A \\\\cap B) \\\\cup (A \\\\cap C)$."
+  },
+  {
+    "id": "FPM-064",
+    "question_text": "Let $A$ and $B$ be subsets of a universal set $U$. Prove that $A \\\\subseteq B$ if and only if $B^c \\\\subseteq A^c$."
+  },
+  {
+    "id": "FPM-065",
+    "question_text": "Let $A$ and $B$ be subsets of a universal set $U$. Prove De Morgan's Law: $(A \\\\cup B)^c = A^c \\\\cap B^c$."
+  },
+  {
+    "id": "FPM-066",
+    "question_text": "Let $A$ and $B$ be sets. Prove that $A \\\\subseteq B$ if and only if the power set $\\\\mathcal{P}(A)$ is a subset of the power set $\\\\mathcal{P}(B)$."
+  },
+  {
+    "id": "FPM-067",
+    "question_text": "Let $X$, $Y$, and $Z$ be sets, and let $f : X \\\\to Y$ and $g : Y \\\\to Z$ be bijections. Prove that the composition $g \\\\circ f$ is a bijection."
+  },
+  {
+    "id": "FPM-068",
+    "question_text": "Let $f : X \\\\to Y$ be a function. Prove that $f$ is injective if and only if $f$ has a left inverse."
+  },
+  {
+    "id": "FPM-069",
+    "question_text": "Let $f : X \\\\to Y$ be a function. Prove that $f$ is surjective if and only if $f$ has a right inverse."
+  },
+  {
+    "id": "FPM-070",
+    "question_text": "Prove the Division Algorithm: For any integers $a$ and $b$ with $b > 0$, there exist unique integers $q$ and $r$ such that $a = bq + r$ and $0 \\\\le r < b$."
+  },
+  {
+    "id": "FPM-071",
+    "question_text": "Let $a$ and $b$ be integers, not both zero. Prove that there exist integers $u$ and $v$ such that $\\\\gcd(a, b) = au + bv$."
+  },
+  {
+    "id": "FPM-072",
+    "question_text": "Prove Euclid's Lemma: Let $p$ be a prime and let $a, b$ be integers. If $p$ divides $ab$, then $p$ divides $a$ or $p$ divides $b$."
+  },
+  {
+    "id": "FPM-073",
+    "question_text": "Let $\\\\sim$ be an equivalence relation on a set $X$. Prove that the equivalence classes of $\\\\sim$ form a partition of $X$."
+  },
+  {
+    "id": "FPM-074",
+    "question_text": "Let $G$ be a group. Prove that the identity element of $G$ is unique, and that every element has a unique inverse."
+  },
+  {
+    "id": "FPM-075",
+    "question_text": "Let $G$ be a group and let $H$ be a non-empty subset of $G$. Prove that $H$ is a subgroup of $G$ if and only if for all $a, b \\\\in H$, $ab^{-1} \\\\in H$."
+  },
+  {
+    "id": "FPM-076",
+    "question_text": "Prove Lagrange's Theorem: If $G$ is a finite group and $H$ is a subgroup of $G$, then the order of $H$ divides the order of $G$."
+  },
+  {
+    "id": "HAN-077",
+    "question_text": "Prove that if $\\\\lim_{n \\\\to \\\\infty} x_n = x$ and $\\\\lim_{n \\\\to \\\\infty} y_n = y$, then $\\\\lim_{n \\\\to \\\\infty} (x_n y_n) = xy$."
+  },
+  {
+    "id": "HAN-078",
+    "question_text": "Prove the Bolzano-Weierstrass Theorem: Every bounded sequence of real numbers has a convergent subsequence."
+  },
+  {
+    "id": "HAN-079",
+    "question_text": "Let $(x_n)$ be a Cauchy sequence in $\\\\mathbb{R}$. Prove that $(x_n)$ is a bounded sequence."
+  },
+  {
+    "id": "HAN-080",
+    "question_text": "Prove that if a sequence of real numbers is monotone and bounded, then it converges."
+  },
+  {
+    "id": "HAN-081",
+    "question_text": "Prove that the limit $\\\\lim_{n \\\\to \\\\infty} \\\\left(1 + \\\\frac{1}{n}\\\\right)^n$ exists and strictly lies between $2$ and $3$."
+  },
+  {
+    "id": "HAN-082",
+    "question_text": "Let $A \\\\subset \\\\mathbb{R}$ be non-empty and bounded above. Prove that if $\\\\sup A \\\\notin A$, then $A$ contains infinitely many elements."
+  },
+  {
+    "id": "HAN-083",
+    "question_text": "Prove that the set of rational numbers $\\\\mathbb{Q}$ is dense in $\\\\mathbb{R}$."
+  },
+  {
+    "id": "HAN-084",
+    "question_text": "Prove that the intersection of an arbitrary family of closed sets in $\\\\mathbb{R}$ is closed."
+  },
+  {
+    "id": "HAN-085",
+    "question_text": "Let $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ be defined by $f(x) = x \\\\sin(1/x)$ for $x \\\\neq 0$ and $f(0) = 0$. Prove that $f$ is continuous at $x = 0$."
+  },
+  {
+    "id": "HAN-086",
+    "question_text": "Prove that if $f: [a, b] \\\\to \\\\mathbb{R}$ is continuous on a closed and bounded interval, then $f$ is uniformly continuous on $[a, b]$."
+  },
+  {
+    "id": "HAN-087",
+    "question_text": "Prove the Intermediate Value Theorem: If $f: [a, b] \\\\to \\\\mathbb{R}$ is continuous and $c$ is a real number strictly between $f(a)$ and $f(b)$, then there exists $x \\\\in (a, b)$ such that $f(x) = c$."
+  },
+  {
+    "id": "HAN-088",
+    "question_text": "Prove the Extreme Value Theorem: If $f: [a, b] \\\\to \\\\mathbb{R}$ is continuous, then it attains its supremum and infimum on $[a, b]$."
+  },
+  {
+    "id": "HAN-089",
+    "question_text": "Let $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ be a function such that $|f(x) - f(y)| \\\\le K|x - y|^2$ for all $x, y \\\\in \\\\mathbb{R}$ and some constant $K > 0$. Prove that $f$ is a constant function."
+  },
+  {
+    "id": "HAN-090",
+    "question_text": "Prove Rolle's Theorem: If $f: [a, b] \\\\to \\\\mathbb{R}$ is continuous on $[a, b]$, differentiable on $(a, b)$, and $f(a) = f(b)$, then there exists $c \\\\in (a, b)$ such that $f'(c) = 0$."
+  },
+  {
+    "id": "HAN-091",
+    "question_text": "Prove the Mean Value Theorem using Rolle's Theorem."
+  },
+  {
+    "id": "HAN-092",
+    "question_text": "Let $f$ be differentiable on $\\\\mathbb{R}$. Prove that if $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$, then $f$ is strictly increasing."
+  },
+  {
+    "id": "HAN-093",
+    "question_text": "Prove that if $f: [a, b] \\\\to \\\\mathbb{R}$ is monotonically increasing, then it is Riemann integrable on $[a, b]$."
+  },
+  {
+    "id": "HAN-094",
+    "question_text": "Prove that if $f: [a, b] \\\\to \\\\mathbb{R}$ is continuous, then it is Riemann integrable on $[a, b]$."
+  },
+  {
+    "id": "HAN-095",
+    "question_text": "Let $f, g: [a, b] \\\\to \\\\mathbb{R}$ be Riemann integrable functions. Prove that their product $f \\\\cdot g$ is Riemann integrable."
+  },
+  {
+    "id": "HAN-096",
+    "question_text": "Prove the First Fundamental Theorem of Calculus: If $f$ is continuous on $[a, b]$ and $F(x) = \\\\int_a^x f(t) dt$, then $F$ is differentiable on $(a, b)$ and $F'(x) = f(x)$."
+  },
+  {
+    "id": "HAN-097",
+    "question_text": "Let $f_n: [a, b] \\\\to \\\\mathbb{R}$ be a sequence of continuous functions converging uniformly to a function $f: [a, b] \\\\to \\\\mathbb{R}$. Prove that $f$ is continuous."
+  },
+  {
+    "id": "HAN-098",
+    "question_text": "Prove that if $\\\\sum_{n=1}^\\\\infty a_n$ converges absolutely, then it converges."
+  },
+  {
+    "id": "HAN-099",
+    "question_text": "Let $f_n \\\\to f$ uniformly on $[a, b]$ and assume each $f_n$ is Riemann integrable. Prove that $\\\\lim_{n \\\\to \\\\infty} \\\\int_a^b f_n(x) dx = \\\\int_a^b f(x) dx$."
+  },
+  {
+    "id": "HAN-100",
+    "question_text": "Prove the Weierstrass M-test: If a sequence of functions $f_n: X \\\\to \\\\mathbb{R}$ satisfies $|f_n(x)| \\\\le M_n$ for all $x \\\\in X$, and the series $\\\\sum_{n=1}^\\\\infty M_n$ converges, then $\\\\sum_{n=1}^\\\\infty f_n$ converges uniformly on $X$."
+  },
+  {
+    "id": "HAN-101",
+    "question_text": "Prove that the sequence of functions $f_n(x) = x^n$ on $[0, 1]$ converges pointwise but not uniformly."
+  },
+  {
+    "id": "HAN-102",
+    "question_text": "Let $X$ be a metric space. Prove that every compact subset of $X$ is closed and bounded."
+  },
+  {
+    "id": "HAN-103",
+    "question_text": "Prove that the union of two compact sets in a metric space is strictly compact."
+  },
+  {
+    "id": "HAN-104",
+    "question_text": "Let $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ be a continuous function. Prove that the preimage of every open set under $f$ is open."
+  },
+  {
+    "id": "HAN-105",
+    "question_text": "Prove that an absolutely convergent series of real numbers must necessarily converge."
+  },
+  {
+    "id": "HAN-106",
+    "question_text": "Prove that the harmonic series $\\\\sum_{n=1}^\\\\infty \\\\frac{1}{n}$ diverges."
+  },
+  {
+    "id": "HAL-107",
+    "question_text": "Prove that the intersection of an arbitrary collection of subgroups of a group $G$ is a subgroup of $G$."
+  },
+  {
+    "id": "HAL-108",
+    "question_text": "Prove that if $H$ and $K$ are subgroups of a group $G$, then $H \\\\cup K$ is a subgroup if and only if $H \\\\subseteq K$ or $K \\\\subseteq H$."
+  },
+  {
+    "id": "HAL-109",
+    "question_text": "Let $G$ be a group and $Z(G)$ be its center. Prove that if $G/Z(G)$ is cyclic, then $G$ is abelian."
+  },
+  {
+    "id": "HAL-110",
+    "question_text": "Prove that every group of prime order is cyclic."
+  },
+  {
+    "id": "HAL-111",
+    "question_text": "Let $\\\\phi: G \\\\to H$ be a group homomorphism. Prove the First Isomorphism Theorem for groups: $G/\\\\ker(\\\\phi) \\\\cong \\\\operatorname{im}(\\\\phi)$."
+  },
+  {
+    "id": "HAL-112",
+    "question_text": "Let $\\\\phi: G \\\\to H$ be a group homomorphism. Prove that $\\\\ker(\\\\phi)$ is a normal subgroup of $G$."
+  },
+  {
+    "id": "HAL-113",
+    "question_text": "Prove that every subgroup of a cyclic group is cyclic."
+  },
+  {
+    "id": "HAL-114",
+    "question_text": "Prove that a group $G$ of order $p^2$, where $p$ is a prime, is abelian."
+  },
+  {
+    "id": "HAL-115",
+    "question_text": "Let $G$ be a group acting on a set $X$. Prove the Orbit-Stabilizer Theorem: $|G| = |\\\\operatorname{orb}_G(x)| |\\\\operatorname{stab}_G(x)|$."
+  },
+  {
+    "id": "HAL-116",
+    "question_text": "Prove that the symmetric group $S_n$ is non-abelian for all $n \\\\ge 3$."
+  },
+  {
+    "id": "HAL-117",
+    "question_text": "Prove that the alternating group $A_n$ is generated by 3-cycles for $n \\\\ge 3$."
+  },
+  {
+    "id": "HAL-118",
+    "question_text": "Let $R$ be a ring. Prove that $0 \\\\cdot x = 0$ for all $x \\\\in R$."
+  },
+  {
+    "id": "HAL-119",
+    "question_text": "Prove that every finite integral domain is a field."
+  },
+  {
+    "id": "HAL-120",
+    "question_text": "Prove that the characteristic of an integral domain is either $0$ or a prime number."
+  },
+  {
+    "id": "HAL-121",
+    "question_text": "Let $I$ and $J$ be ideals of a commutative ring $R$. Prove that their intersection $I \\\\cap J$ is an ideal of $R$."
+  },
+  {
+    "id": "HAL-122",
+    "question_text": "Prove that an ideal $M$ in a commutative ring $R$ with identity is maximal if and only if the quotient ring $R/M$ is a field."
+  },
+  {
+    "id": "HAL-123",
+    "question_text": "Prove that an ideal $P$ in a commutative ring $R$ with identity is prime if and only if the quotient ring $R/P$ is an integral domain."
+  },
+  {
+    "id": "HAL-124",
+    "question_text": "Prove that the polynomial ring $F[x]$ over a field $F$ is a principal ideal domain (PID)."
+  },
+  {
+    "id": "HAL-125",
+    "question_text": "Prove that in a principal ideal domain, every irreducible element is prime."
+  },
+  {
+    "id": "HAL-126",
+    "question_text": "Let $V$ be a vector space over a field $F$. Prove that a subset $W \\\\subseteq V$ is a subspace if and only if it is non-empty and closed under vector addition and scalar multiplication."
+  },
+  {
+    "id": "HAL-127",
+    "question_text": "Prove that any two bases of a finite-dimensional vector space have the same number of elements."
+  },
+  {
+    "id": "HAL-128",
+    "question_text": "Let $T: V \\\\to W$ be a linear transformation between finite-dimensional vector spaces. Prove the Rank-Nullity Theorem: $\\\\dim(V) = \\\\dim(\\\\ker(T)) + \\\\dim(\\\\operatorname{im}(T))$."
+  },
+  {
+    "id": "HAL-129",
+    "question_text": "Let $V$ be a vector space and $U, W$ be finite-dimensional subspaces of $V$. Prove that $\\\\dim(U + W) = \\\\dim(U) + \\\\dim(W) - \\\\dim(U \\\\cap W)$."
+  },
+  {
+    "id": "HAL-130",
+    "question_text": "Prove that a linear transformation $T: V \\\\to W$ is injective if and only if $\\\\ker(T) = \\\\{0\\\\}$."
+  },
+  {
+    "id": "HAL-131",
+    "question_text": "Prove that eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly independent."
+  },
+  {
+    "id": "HAL-132",
+    "question_text": "Let $A$ be an $n \\\\times n$ matrix over a field $F$. Prove that $A$ is invertible if and only if $\\\\det(A) \\\\neq 0$."
+  },
+  {
+    "id": "HAL-133",
+    "question_text": "Let $V$ be an inner product space. Prove the Cauchy-Schwarz inequality: $|\\\\langle u, v \\\\rangle| \\\\le \\\\|u\\\\| \\\\|v\\\\|$ for all $u, v \\\\in V$."
+  },
+  {
+    "id": "HAL-134",
+    "question_text": "Prove that every finite-dimensional inner product space has an orthonormal basis."
+  },
+  {
+    "id": "HAL-135",
+    "question_text": "Let $T: V \\\\to V$ be a linear operator on a finite-dimensional complex inner product space. Prove that if $T$ is self-adjoint, then all its eigenvalues are real."
+  },
+  {
+    "id": "HAL-136",
+    "question_text": "Prove that the dual space $V^*$ of a finite-dimensional vector space $V$ is isomorphic to $V$."
+  }
+]
