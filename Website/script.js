@@ -25,6 +25,7 @@ const modelSelect     = document.getElementById('modelSelect');
 const lightIdle       = document.getElementById('lightIdle');
 const lightThinking   = document.getElementById('lightThinking');
 const lightFailed     = document.getElementById('lightFailed');
+const leanModelSelect = document.getElementById('leanModelSelect');
 
 
 // ══════════════════════════════════════════════════════════════════
@@ -132,8 +133,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Default state: idle (green light on)
   setStatus('idle');
 
-  // Load available models into dropdown
+  // Load available models into dropdowns
   await loadModels();
+  await loadLeanModels();
 
   // Load persisted proof history from server
   await loadHistory();
@@ -197,6 +199,28 @@ async function loadModels() {
     // Fallback: single placeholder so the UI still works
     modelSelect.innerHTML = '<option value="default">Default Model</option>';
     console.warn('[Provably] Could not load models:', err.message);
+  }
+}
+
+
+async function loadLeanModels() {
+  try {
+    const resp = await fetch(`${API_BASE}/api/lean-models`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data   = await resp.json();
+    const models = data.models || [];
+
+    leanModelSelect.innerHTML = '';
+    models.forEach((name, i) => {
+      const opt    = document.createElement('option');
+      opt.value    = name;
+      opt.textContent = name;
+      if (i === 0) opt.selected = true;
+      leanModelSelect.appendChild(opt);
+    });
+  } catch (err) {
+    leanModelSelect.innerHTML = '<option value="aristotle">aristotle</option>';
+    console.warn('[Provably] Could not load Lean models:', err.message);
   }
 }
 
@@ -281,7 +305,8 @@ async function handleSolve() {
     return;
   }
 
-  const model = modelSelect.value || 'default';
+  const model     = modelSelect.value     || 'default';
+  const leanModel = leanModelSelect.value || 'aristotle';
 
   // UI → loading state
   setLoading(true);
@@ -296,7 +321,7 @@ async function handleSolve() {
     const response = await fetch(`${API_BASE}/api/ask`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ question, model }),
+      body:    JSON.stringify({ question, model, lean_model: leanModel }),
     });
 
     if (!response.ok) {
@@ -414,7 +439,7 @@ function showLoading() {
     <div class="loading-dots" aria-label="Generating proof">
       <span></span><span></span><span></span>
     </div>
-    <span>Generating proof…</span>
+    <span>Generating &amp; verifying proof…</span>
   `;
   stepsArea.appendChild(row);
   row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -432,7 +457,7 @@ function showError(message) {
 function setLoading(isLoading) {
   solveBtn.disabled         = isLoading;
   questionInput.disabled    = isLoading;
-  solveBtn.textContent      = isLoading ? 'Generating…' : 'Generate Proof';
+  solveBtn.textContent      = isLoading ? 'Generating & verifying…' : 'Generate Proof';
 }
 
 function shakeInput() {
