@@ -5,7 +5,8 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 // ── Config ─────────────────────────────────────────────────────────
-const API_BASE = 'http://localhost:5000'; // Flask server (server/server.py)
+const API_BASE    = 'http://localhost:5000'; // Flask server (server/server.py)
+const MAX_RETRIES = 3;                       // NL retry attempts before giving up
 
 // ── State ───────────────────────────────────────────────────────────
 let proofHistory = []; // { question, proof, model, timestamp }[]
@@ -295,7 +296,7 @@ function reloadHistoryEntry(entry, clickedItem) {
 
 
 // ══════════════════════════════════════════════════════════════════
-// SOLVE / GENERATE PROOF
+// SOLVE / GENERATE PROOF  (two-phase: NL first, then Lean verify)
 // ══════════════════════════════════════════════════════════════════
 
 async function handleSolve() {
@@ -311,51 +312,107 @@ async function handleSolve() {
   // UI → loading state
   setLoading(true);
   setStatus('thinking');
-
-  // Clear previous result
   welcomeState.style.display = 'none';
   clearPreviousProof();
-  const loadingEl = showLoading();
+
+  // Show the theorem immediately
+  renderQuestion(question);
+
+  // Show loading spinner while waiting for the first NL proof
+  const nlLoadingEl = showLoading('Generating proof…');
 
   try {
-    const response = await fetch(`${API_BASE}/api/ask`, {
+    // ── Phase 1: Get the initial NL proof ───────────────────────────
+    const nlResp = await fetch(`${API_BASE}/api/nl`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ question, model, lean_model: leanModel }),
+      body:    JSON.stringify({ question, model }),
     });
 
-    if (!response.ok) {
-      const errBody = await response.json().catch(() => ({}));
-      throw new Error(errBody.error || `Server error: ${response.status}`);
+    if (!nlResp.ok) {
+      const errBody = await nlResp.json().catch(() => ({}));
+      throw new Error(errBody.error || `Server error: ${nlResp.status}`);
     }
 
-    const result = await response.json();
-    const proof  = result.proof;
+    const nlResult   = await nlResp.json();
+    let currentProof = nlResult.proof;
 
-    if (!proof) throw new Error('The server returned an empty proof.');
+    if (!currentProof) throw new Error('The server returned an empty proof.');
 
-    // Render the proof
-    loadingEl.remove();
-    renderProof(question, proof);
-    setStatus('idle');
+    // Display the NL proof immediately with a "verifying" banner
+    nlLoadingEl.remove();
+    const proofBlockEl = renderNLProof(currentProof);
 
-    // Persist to history
-    const entry = {
-      question,
-      proof,
-      model,
-      timestamp: new Date().toISOString(),
-    };
-    await saveHistoryEntry(entry);
-    proofHistory.unshift(entry);
-    renderHistorySidebar();
+    // ── Phase 2: Verify in a loop (retry with new NL if invalid) ───
+    let verified = false;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const verifyResp = await fetch(`${API_BASE}/api/verify`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ proof: currentProof, lean_model: leanModel }),
+      });
+
+      if (!verifyResp.ok) {
+        const errBody = await verifyResp.json().catch(() => ({}));
+        throw new Error(errBody.error || `Verification error: ${verifyResp.status}`);
+      }
+
+      const verifyResult = await verifyResp.json();
+
+      if (verifyResult.valid) {
+        verified = true;
+        break;
+      }
+
+      // Not valid — fetch a new NL proof and update the display
+      if (attempt < MAX_RETRIES - 1) {
+        const retryResp = await fetch(`${API_BASE}/api/nl`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ question, model }),
+        });
+        if (retryResp.ok) {
+          const retryResult = await retryResp.json();
+          if (retryResult.proof) {
+            currentProof = retryResult.proof;
+            updateProofBlock(proofBlockEl, currentProof);
+          }
+        }
+      }
+    }
+
+    if (verified) {
+      // Mark proof as verified — remove banner, apply green styling
+      markProofVerified(proofBlockEl);
+      setStatus('idle');
+
+      // Persist to history
+      const entry = {
+        question,
+        proof:     currentProof,
+        model,
+        timestamp: new Date().toISOString(),
+      };
+      await saveHistoryEntry(entry);
+      proofHistory.unshift(entry);
+      renderHistorySidebar();
+    } else {
+      // Couldn't verify — remove the spinner banner but keep the proof visible
+      markProofVerified(proofBlockEl);
+      showError(
+        `Lean could not formally verify this proof after ${MAX_RETRIES} attempt(s). ` +
+        'The proof shown may contain errors.'
+      );
+      setStatus('failed');
+    }
 
     // Clear input
     questionInput.value = '';
     questionInput.style.height = '';
 
   } catch (err) {
-    loadingEl.remove();
+    nlLoadingEl?.remove();
     showError(err.message || 'Could not connect to the proof server. Make sure server/server.py is running.');
     setStatus('failed');
     console.error('[Provably]', err);
@@ -366,17 +423,14 @@ async function handleSolve() {
 
 
 // ══════════════════════════════════════════════════════════════════
-// PROOF RENDERING  (single continuous block — no step-by-step)
+// PROOF RENDERING
 // ══════════════════════════════════════════════════════════════════
 
 /**
- * renderProof(question, proofText)
- *
- * Renders the theorem statement and the full proof as two
- * continuous blocks with Markdown + KaTeX rendering.
+ * renderQuestion(question)
+ * Renders the theorem/question block.
  */
-function renderProof(question, proofText) {
-  // ── Theorem / question block ──────────────────────────────────
+function renderQuestion(question) {
   const qBlock = document.createElement('div');
   qBlock.className = 'proof-question';
 
@@ -390,23 +444,71 @@ function renderProof(question, proofText) {
   qBlock.appendChild(qLabel);
   qBlock.appendChild(qContent);
   stepsArea.appendChild(qBlock);
+  stepsArea.scrollTop = 0;
+}
 
-  // ── Proof block ───────────────────────────────────────────────
+/**
+ * renderNLProof(proofText)
+ * Renders the proof block in "unverified / verifying" state.
+ * Returns the block element so it can be updated later.
+ */
+function renderNLProof(proofText) {
   const pBlock = document.createElement('div');
-  pBlock.className = 'proof-block';
+  pBlock.className = 'proof-block proof-unverified';
+
+  // Animated banner indicating verification is in progress
+  const banner = document.createElement('div');
+  banner.className = 'verifying-banner';
+  banner.innerHTML = `
+    <span class="verifying-banner-dots">
+      <span></span><span></span><span></span>
+    </span>
+    Verifying with Lean…
+  `;
 
   const pLabel = document.createElement('span');
   pLabel.className   = 'proof-label';
   pLabel.textContent = 'Proof';
 
   const pContent = document.createElement('div');
+  pContent.className = 'proof-content';
   pContent.innerHTML = renderMarkdownMath(proofText);
 
+  pBlock.appendChild(banner);
   pBlock.appendChild(pLabel);
   pBlock.appendChild(pContent);
   stepsArea.appendChild(pBlock);
 
-  // Scroll to top of proof
+  return pBlock;
+}
+
+/**
+ * updateProofBlock(pBlock, proofText)
+ * Replaces the proof text inside an existing proof block element.
+ */
+function updateProofBlock(pBlock, proofText) {
+  const content = pBlock.querySelector('.proof-content');
+  if (content) content.innerHTML = renderMarkdownMath(proofText);
+}
+
+/**
+ * markProofVerified(pBlock)
+ * Removes the verifying banner and applies the green verified styling.
+ */
+function markProofVerified(pBlock) {
+  pBlock.classList.remove('proof-unverified');
+  const banner = pBlock.querySelector('.verifying-banner');
+  if (banner) banner.remove();
+}
+
+/**
+ * renderProof(question, proofText)
+ * Convenience wrapper used when loading history entries (already verified).
+ */
+function renderProof(question, proofText) {
+  renderQuestion(question);
+  const pBlock = renderNLProof(proofText);
+  markProofVerified(pBlock);
   stepsArea.scrollTop = 0;
 }
 
@@ -432,14 +534,14 @@ function resetToWelcome() {
   setStatus('idle');
 }
 
-function showLoading() {
+function showLoading(msg = 'Generating &amp; verifying proof…') {
   const row = document.createElement('div');
   row.className = 'loading-row';
   row.innerHTML = `
     <div class="loading-dots" aria-label="Generating proof">
       <span></span><span></span><span></span>
     </div>
-    <span>Generating &amp; verifying proof…</span>
+    <span>${msg}</span>
   `;
   stepsArea.appendChild(row);
   row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

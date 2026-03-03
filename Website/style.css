@@ -1299,6 +1299,48 @@ img, svg {
 }
 
 
+/* ── Proof block — unverified / verifying state ─────────────────── */
+.proof-block.proof-unverified {
+  border-left-color: var(--warning);
+  background: #FFFBF4;
+}
+
+.proof-block.proof-unverified .proof-label {
+  color: var(--warning);
+}
+
+.verifying-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.8rem;
+  background: rgba(192, 122, 32, 0.09);
+  border: 1px solid rgba(192, 122, 32, 0.22);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--warning);
+  margin-bottom: 0.75rem;
+}
+
+.verifying-banner-dots {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.verifying-banner-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--warning);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.verifying-banner-dots span:nth-child(2) { animation-delay: 0.2s; }
+.verifying-banner-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+
 /* ── Textarea input ──────────────────────────────────────────────── */
 .input-textarea {
   resize: none;

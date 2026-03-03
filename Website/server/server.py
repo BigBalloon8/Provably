@@ -217,6 +217,7 @@ def api_ask():
                 'model':          lean_model,
                 'lean_attempts':  LEAN_ATTEMPTS,
                 'claude_fix_this': CLAUDE_FIX,
+                'local_verify':   False,
             }
             verify_resp = http_requests.post(
                 f'{PROOF_API_BASE}/lean-verify/',
@@ -259,6 +260,109 @@ def api_ask():
 
 
 # ══════════════════════════════════════════════════════════════════
+# API — NL Generation (step 1 of 2, used by frontend directly)
+# ══════════════════════════════════════════════════════════════════
+
+@app.route('/api/nl', methods=['POST'])
+def api_nl():
+    """
+    Generates a natural-language proof without verifying it.
+    The frontend calls this first, displays the result immediately,
+    then calls /api/verify to check it with Lean.
+
+    Receives:  { "question": "...", "model": "..." }
+    Returns:   { "proof": "..." }
+    """
+    data     = request.get_json(silent=True) or {}
+    question = data.get('question', '').strip()
+    model    = data.get('model', 'claude-sonnet-4-5-20250929').strip()
+
+    if not question:
+        return jsonify({'error': 'No question provided'}), 400
+
+    try:
+        nl_resp = http_requests.post(
+            f'{PROOF_API_BASE}/nl/',
+            json={'query': question, 'model': model},
+            timeout=120,
+        )
+        nl_resp.raise_for_status()
+        proof = nl_resp.json().get('proof', '')
+
+        if not proof:
+            return jsonify({'error': 'The proof API returned an empty response.'}), 502
+
+        return jsonify({'proof': proof})
+
+    except http_requests.exceptions.ConnectionError:
+        return jsonify({
+            'error': (
+                'Cannot reach the proof generation server at port 8000. '
+                'Please start the Provably API: uvicorn API:provablyAPI --port 8000'
+            )
+        }), 503
+    except http_requests.exceptions.Timeout:
+        return jsonify({'error': 'Proof generation timed out.'}), 504
+    except http_requests.exceptions.HTTPError as e:
+        return jsonify({'error': f'Proof API returned an error: {e.response.status_code}'}), 502
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
+# ══════════════════════════════════════════════════════════════════
+# API — Lean Verification (step 2 of 2, used by frontend directly)
+# ══════════════════════════════════════════════════════════════════
+
+@app.route('/api/verify', methods=['POST'])
+def api_verify():
+    """
+    Verifies a natural-language proof with Lean.
+    The frontend calls this after displaying the NL proof.
+
+    Receives:  { "proof": "...", "lean_model": "aristotle" }
+    Returns:   { "valid": true|false }
+    """
+    data       = request.get_json(silent=True) or {}
+    proof      = data.get('proof', '').strip()
+    lean_model = data.get('lean_model', 'aristotle').strip()
+
+    if not proof:
+        return jsonify({'error': 'No proof provided'}), 400
+
+    verify_payload = {
+        'proof':           proof,
+        'model':           lean_model,
+        'lean_attempts':   LEAN_ATTEMPTS,
+        'claude_fix_this': CLAUDE_FIX,
+        'local_verify':    False,
+    }
+
+    try:
+        verify_resp = http_requests.post(
+            f'{PROOF_API_BASE}/lean-verify/',
+            json=verify_payload,
+            timeout=1200,
+        )
+        verify_resp.raise_for_status()
+        valid = verify_resp.json().get('valid', False)
+        return jsonify({'valid': valid})
+
+    except http_requests.exceptions.ConnectionError:
+        return jsonify({
+            'error': (
+                'Cannot reach the proof generation server at port 8000. '
+                'Please start the Provably API: uvicorn API:provablyAPI --port 8000'
+            )
+        }), 503
+    except http_requests.exceptions.Timeout:
+        return jsonify({'error': 'Lean verification timed out.'}), 504
+    except http_requests.exceptions.HTTPError as e:
+        return jsonify({'error': f'Proof API returned an error: {e.response.status_code}'}), 502
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
+# ══════════════════════════════════════════════════════════════════
 # ENTRY POINT
 # ══════════════════════════════════════════════════════════════════
 
@@ -273,6 +377,8 @@ if __name__ == '__main__':
     print('  ║     GET  /api/lean-models   ← Lean verify models  ║')
     print('  ║     GET  /api/history       ← proof history       ║')
     print('  ║     POST /api/history       ← save proof entry    ║')
+    print('  ║     POST /api/nl            ← generate NL proof   ║')
+    print('  ║     POST /api/verify        ← Lean verification   ║')
     print('  ║     POST /api/ask           ← generate+verify     ║')
     print('  ║                                                   ║')
     print('  ║   Requires: proof API on http://127.0.0.1:8000    ║')
