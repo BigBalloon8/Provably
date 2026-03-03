@@ -40,7 +40,7 @@ PROOF_API_BASE = 'http://127.0.0.1:8000'
 
 # Lean verification settings
 LEAN_ATTEMPTS   = 3      # how many times the Lean model tries to write the Lean proof
-CLAUDE_FIX      = False  # whether Claude attempts to patch Lean syntax errors
+CLAUDE_FIX      = True  # whether Claude attempts to patch Lean syntax errors
 MAX_NL_RETRIES  = 3      # how many NL proofs to generate before giving up
 
 
