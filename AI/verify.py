@@ -1,6 +1,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import outlines
+import anthropic
 
 import subprocess
 import os
@@ -17,12 +18,19 @@ def get_verify_prompt(proof, lean_file):
 {proof}
 """
 
-def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
+def verify_with_claude(proof, model_name):
+    client = anthropic.Anthropic()
+    model = outlines.from_anthropic(client, model_name)
 
-    model = outlines.from_transformers(
-    AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True),
-    AutoTokenizer.from_pretrained(model_name)
-    )
+def verify_equality(proof, model_name="deepseek-ai/DeepSeek-Prover-V2-7B"):
+    if "claude" in model_name:
+        client = anthropic.Anthropic()
+        model = outlines.from_anthropic(client, model_name)
+    else:
+        model = outlines.from_transformers(
+        AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", dtype=torch.bfloat16, trust_remote_code=True),
+        AutoTokenizer.from_pretrained(model_name)
+        )
     return model(get_verify_prompt(proof, os.path.join(os.environ["SOLUTIONPATH"],"solution.lean")), bool)
 
 def verify_lean_file(filepath: str) -> bool:
