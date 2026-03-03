@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from NL import query_claude, run_transformer
-from lean import query_aristotle, query_transformer
+from lean import query_aristotle_api, query_transformer
 from verify import verify_lean_file, verify_equality
 from logger import get_logger
 
@@ -53,7 +53,7 @@ async def lean_verify(verifyquery: VerifyQuery):
     
     logger = get_logger() 
     if verifyquery.model == "aristotle":
-        query_aristotle(verifyquery.proof, logger=logger)
+        query_aristotle_api(verifyquery.proof, logger=logger)
     else:
         query_transformer(verifyquery.proof, 
                           model_id=verifyquery.model, 

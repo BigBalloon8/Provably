@@ -67,6 +67,12 @@ def query_aristotle(NL, logger=None):
     if logger is not None:
         logger.info("Aristotle Complete")
 
+async def query_aristotle_api(NL, logger=None):
+    print("Waiting for Aristotle")
+    await aristotle_request(get_lean(NL))
+    print("Aristotle Complete")
+    if logger is not None:
+        logger.info("Aristotle Complete")
 
 def run_transformer_lean(prompt, model_id):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
