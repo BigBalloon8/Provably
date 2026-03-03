@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from NL import query_claude, run_transformer
-from lean import query_aristotle, query_transformer
+from lean import query_aristotle_api, query_transformer
 from verify import verify_lean_file, verify_equality
 from logger import get_logger
 
@@ -10,6 +10,10 @@ from transformers.utils import logging
 logging.set_verbosity_error()
 
 import os
+
+if os.path.exists("AI/.env"):
+    import dotenv
+    dotenv.load_dotenv("AI/.env")
 
 provablyAPI = FastAPI()
 
@@ -23,6 +27,7 @@ class VerifyQuery(BaseModel):
     model: str
     lean_attempts: int
     claude_fix_this: bool
+    local_verify: bool
 
 
 @provablyAPI.post("/nl/")
@@ -48,7 +53,7 @@ async def lean_verify(verifyquery: VerifyQuery):
     
     logger = get_logger() 
     if verifyquery.model == "aristotle":
-        query_aristotle(verifyquery.proof, logger=logger)
+        query_aristotle_api(verifyquery.proof, logger=logger)
     else:
         query_transformer(verifyquery.proof, 
                           model_id=verifyquery.model, 
@@ -56,7 +61,10 @@ async def lean_verify(verifyquery: VerifyQuery):
                           attempts=verifyquery.lean_attempts, 
                           claude_fix_this=verifyquery.claude_fix_this)
 
-    NL_correctness = verify_equality(verifyquery.proof)
+    if verifyquery.local_verify:
+        NL_correctness = verify_equality(verifyquery.proof)
+    else:
+        NL_correctness = verify_equality(verifyquery.proof, "claude-opus-4-6")
     return {"valid": NL_correctness and verify_lean_file(os.path.join(os.environ["SOLUTIONPATH"],"solution.lean"))}
 
 

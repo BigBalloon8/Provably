@@ -30,7 +30,10 @@ Write the guide with the following code included
 import Mathlib
 import Aesop
 
-set_option maxHeartbeats 0\n
+set_option maxHeartbeats 0
+
+open BigOperators Real Nat Topology Rat
+
 ```
 Provide a detailed proof plan outlining the main proof steps and strategies. The plan should highlight key ideas, intermediate lemmas, \
 and proof structures that will guide the construction of the final formal proof.
@@ -41,7 +44,10 @@ imports = """
 import Mathlib
 import Aesop
 
-set_option maxHeartbeats 0\n
+set_option maxHeartbeats 0
+
+open BigOperators Real Nat Topology Rat
+
 """.strip()
 #-----------------------------------------------------------------------------------------------------
 
@@ -61,6 +67,12 @@ def query_aristotle(NL, logger=None):
     if logger is not None:
         logger.info("Aristotle Complete")
 
+async def query_aristotle_api(NL, logger=None):
+    print("Waiting for Aristotle")
+    await aristotle_request(get_lean(NL))
+    print("Aristotle Complete")
+    if logger is not None:
+        logger.info("Aristotle Complete")
 
 def run_transformer_lean(prompt, model_id):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -128,7 +140,7 @@ def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logg
         if file_passes:
             break
         
-        seq = f"\n The following lean code \n```lean4\n{code}\n```\n resulted in this error:\n{output}\n Can you fix it, giving the output in as \n```lean4\n...\n```: "
+        seq = f"\n The following lean code \n```lean4\n{code}\n```\n resulted in this error:\n{output}\n Can you fix it, give an explanation of the error and then give the output in as \n```lean4\n...\n```: "
         
     print("Deepseek Complete")
     #print(code)

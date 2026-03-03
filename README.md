@@ -3,7 +3,7 @@
 ## Setup
 
 1. Install lean4
-2. Run: `pip install torch transformers aristotlelib`
+2. Run: `pip install torch transformers accelerate aristotlelib anthropic outlines`
 3. If using Claude or aristotle add keys to environment variables
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-api03-...
@@ -12,7 +12,7 @@ export ARISTOTLE_API_KEY=arstl_...
 
 ## Running Provably
 
-```
+```bash
 git clone https://github.com/BigBalloon8/Provably.git
 cd Provably
 export SOLUTIONPATH=$PWD/Solution
@@ -35,3 +35,14 @@ options:
 ```
 
 Any model on the huggingface hub can be passed for the natural language generation of the proof, by default claude is used. For lean generation we currently support aristotle and deepseek.
+
+## Running Provably API
+
+```bash
+pip install fastapi uvicorn
+
+cd Provably
+export SOLUTIONPATH=$PWD/Solution
+cd AI
+uvicorn API:provablyAPI --reload
+```

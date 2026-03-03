@@ -66,7 +66,7 @@ def get_solution(question, args):
     solutions[question["id"]] = {"NL": response, "lean": lean4}
 
     with open("benchmark_solutions.json", "w") as f:
-        json.dump(solutions, f)
+        json.dump(solutions, f, indent=4)
 
 def main(args):
     file = os.path.join(os.path.dirname(__file__),"benchmark_questions.json")
@@ -79,6 +79,7 @@ def main(args):
         solutions = {}
     for q in questions:
         if q["id"] not in solutions.keys():
+            print(f"\n{q["id"]}: {q["question_text"]}")
             get_solution(q, args)
 
 
