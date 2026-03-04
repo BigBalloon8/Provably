@@ -1,16 +1,8 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Provably — Dashboard Script
-   Handles: model loading, proof generation, Markdown+Math rendering,
-            status lights, history persistence, mobile sidebar.
-   ═══════════════════════════════════════════════════════════════════ */
+const API_BASE    = 'http://localhost:5000';
+const MAX_RETRIES = 3;
 
-// ── Config ─────────────────────────────────────────────────────────
-const API_BASE = 'http://localhost:5000'; // Flask server (server/server.py)
+let proofHistory = [];
 
-// ── State ───────────────────────────────────────────────────────────
-let proofHistory = []; // { question, proof, model, timestamp }[]
-
-// ── DOM References ──────────────────────────────────────────────────
 const questionInput   = document.getElementById('questionInput');
 const solveBtn        = document.getElementById('solveBtn');
 const stepsArea       = document.getElementById('stepsArea');
@@ -22,61 +14,28 @@ const sidebar         = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const exampleChips    = document.getElementById('exampleChips');
 const modelSelect     = document.getElementById('modelSelect');
-const lightIdle       = document.getElementById('lightIdle');
-const lightThinking   = document.getElementById('lightThinking');
-const lightFailed     = document.getElementById('lightFailed');
 const leanModelSelect = document.getElementById('leanModelSelect');
 
 
-// ══════════════════════════════════════════════════════════════════
-// STATUS LIGHTS
-// ══════════════════════════════════════════════════════════════════
-
-/**
- * setStatus('idle' | 'thinking' | 'failed')
- * Illuminates exactly one light; the others are dimmed.
- */
-function setStatus(status) {
-  lightIdle.classList.toggle('active',     status === 'idle');
-  lightThinking.classList.toggle('active', status === 'thinking');
-  lightFailed.classList.toggle('active',   status === 'failed');
-}
-
-
-// ══════════════════════════════════════════════════════════════════
-// MARKDOWN + MATH RENDERING
-// ══════════════════════════════════════════════════════════════════
-
-/**
- * renderMarkdownMath(text) → HTML string
- *
- * Strategy:
- *  1. Extract all $...$ and $$...$$ math spans, replace with null-byte
- *     placeholders so Marked.js doesn't mangle them.
- *  2. Run Marked.js to convert Markdown → HTML.
- *  3. Restore each placeholder by rendering the math with KaTeX.
- *
- * Falls back gracefully if libraries are not yet loaded.
- */
+// Renders Markdown + LaTeX in a single pass.
+// Math spans ($...$ and $$...$$) are extracted and replaced with null-byte
+// placeholders before Marked.js runs, then restored via KaTeX afterwards.
+// This prevents Marked from mangling LaTeX syntax.
 function renderMarkdownMath(text) {
   if (!text) return '';
 
   const mathBlocks = [];
 
-  // ── Step 1: protect display math  $$...$$
   let safe = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
     mathBlocks.push({ display: true, expr });
     return `\x00MATH${mathBlocks.length - 1}\x00`;
   });
 
-  // ── Step 2: protect inline math  $...$
-  //   Negative look-behind/ahead for $ to avoid double-matches.
   safe = safe.replace(/\$([^$\n]+?)\$/g, (_, expr) => {
     mathBlocks.push({ display: false, expr });
     return `\x00MATH${mathBlocks.length - 1}\x00`;
   });
 
-  // ── Step 3: also protect \[...\] and \(...\) delimiters
   safe = safe.replace(/\\\[([\s\S]+?)\\\]/g, (_, expr) => {
     mathBlocks.push({ display: true, expr });
     return `\x00MATH${mathBlocks.length - 1}\x00`;
@@ -87,19 +46,16 @@ function renderMarkdownMath(text) {
     return `\x00MATH${mathBlocks.length - 1}\x00`;
   });
 
-  // ── Step 4: Markdown → HTML
   let html;
   if (typeof marked !== 'undefined') {
     marked.setOptions({ breaks: true, gfm: true });
     html = marked.parse(safe);
   } else {
-    // Minimal fallback
     html = '<p>' + safe
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>') + '</p>';
   }
 
-  // ── Step 5: restore math placeholders via KaTeX
   html = html.replace(/\x00MATH(\d+)\x00/g, (_, idxStr) => {
     const { display, expr } = mathBlocks[+idxStr];
     if (typeof katex !== 'undefined') {
@@ -110,11 +66,9 @@ function renderMarkdownMath(text) {
           output: 'html',
         });
       } catch (_) {
-        // KaTeX parse error — return raw source
         return display ? `$$${expr}$$` : `$${expr}$`;
       }
     }
-    // KaTeX not loaded — return raw source so text is still readable
     return display ? `$$${expr}$$` : `$${expr}$`;
   });
 
@@ -122,28 +76,15 @@ function renderMarkdownMath(text) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════════
-
 document.addEventListener('DOMContentLoaded', async () => {
-  // Page fade-in
   document.body.classList.add('loaded');
 
-  // Default state: idle (green light on)
-  setStatus('idle');
-
-  // Load available models into dropdowns
   await loadModels();
   await loadLeanModels();
-
-  // Load persisted proof history from server
   await loadHistory();
 
-  // ── Event listeners ────────────────────────────────────────────
   solveBtn.addEventListener('click', handleSolve);
 
-  // Ctrl+Enter or Cmd+Enter inside textarea submits
   questionInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -151,12 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Auto-grow textarea
   questionInput.addEventListener('input', autoGrowTextarea);
-
   newProblemBtn.addEventListener('click', resetToWelcome);
 
-  // Example chips → populate input
   exampleChips?.addEventListener('click', (e) => {
     const chip = e.target.closest('.example-chip');
     if (!chip) return;
@@ -165,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     questionInput.focus();
   });
 
-  // Mobile sidebar
   sidebarToggle.addEventListener('click', toggleSidebar);
   sidebarBackdrop.addEventListener('click', closeSidebar);
 });
@@ -176,9 +113,7 @@ function autoGrowTextarea() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// MODELS
-// ══════════════════════════════════════════════════════════════════
+// Models
 
 async function loadModels() {
   try {
@@ -196,12 +131,10 @@ async function loadModels() {
       modelSelect.appendChild(opt);
     });
   } catch (err) {
-    // Fallback: single placeholder so the UI still works
     modelSelect.innerHTML = '<option value="default">Default Model</option>';
     console.warn('[Provably] Could not load models:', err.message);
   }
 }
-
 
 async function loadLeanModels() {
   try {
@@ -225,9 +158,7 @@ async function loadLeanModels() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// HISTORY  (server-persisted via history.json)
-// ══════════════════════════════════════════════════════════════════
+// History
 
 async function loadHistory() {
   try {
@@ -263,11 +194,31 @@ function renderHistorySidebar() {
 
   proofHistory.slice(0, 20).forEach((entry, idx) => {
     const item = document.createElement('div');
-    item.className   = 'sidebar-history-item' + (idx === 0 ? ' active' : '');
-    item.textContent = truncate(entry.question, 34);
-    item.title       = entry.question;
+    item.className = 'sidebar-history-item' + (idx === 0 ? ' active' : '');
     item.setAttribute('role',     'button');
     item.setAttribute('tabindex', '0');
+
+    const itemText = document.createElement('span');
+    itemText.className   = 'history-item-text';
+    itemText.textContent = truncate(entry.question, 34);
+    itemText.title       = entry.question;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'history-delete-btn';
+    deleteBtn.setAttribute('aria-label', 'Delete this proof');
+    deleteBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteHistoryEntry(idx);
+    });
+
+    item.appendChild(itemText);
+    item.appendChild(deleteBtn);
 
     item.addEventListener('click',   () => reloadHistoryEntry(entry, item));
     item.addEventListener('keydown', (e) => {
@@ -278,25 +229,30 @@ function renderHistorySidebar() {
   });
 }
 
+async function deleteHistoryEntry(idx) {
+  try {
+    await fetch(`${API_BASE}/api/history/${idx}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn('[Provably] Could not delete history entry:', err.message);
+  }
+  proofHistory.splice(idx, 1);
+  renderHistorySidebar();
+}
+
 function reloadHistoryEntry(entry, clickedItem) {
-  // Mark active
   document.querySelectorAll('.sidebar-history-item')
     .forEach(el => el.classList.remove('active'));
   clickedItem.classList.add('active');
 
-  // Redisplay saved proof
   welcomeState.style.display = 'none';
   clearPreviousProof();
   renderProof(entry.question, entry.proof);
 
-  // Close sidebar on mobile
   closeSidebar();
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// SOLVE / GENERATE PROOF
-// ══════════════════════════════════════════════════════════════════
+// Proof generation — NL first, then Lean verification loop
 
 async function handleSolve() {
   const question = questionInput.value.trim();
@@ -308,56 +264,100 @@ async function handleSolve() {
   const model     = modelSelect.value     || 'default';
   const leanModel = leanModelSelect.value || 'aristotle';
 
-  // UI → loading state
   setLoading(true);
-  setStatus('thinking');
-
-  // Clear previous result
   welcomeState.style.display = 'none';
   clearPreviousProof();
-  const loadingEl = showLoading();
+
+  renderQuestion(question);
+
+  const nlLoadingEl = showLoading('Generating proof…');
+  let proofBlockEl = null;
 
   try {
-    const response = await fetch(`${API_BASE}/api/ask`, {
+    const nlResp = await fetch(`${API_BASE}/api/nl`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ question, model, lean_model: leanModel }),
+      body:    JSON.stringify({ question, model }),
     });
 
-    if (!response.ok) {
-      const errBody = await response.json().catch(() => ({}));
-      throw new Error(errBody.error || `Server error: ${response.status}`);
+    if (!nlResp.ok) {
+      const errBody = await nlResp.json().catch(() => ({}));
+      throw new Error(errBody.error || `Server error: ${nlResp.status}`);
     }
 
-    const result = await response.json();
-    const proof  = result.proof;
+    const nlResult   = await nlResp.json();
+    let currentProof = nlResult.proof;
 
-    if (!proof) throw new Error('The server returned an empty proof.');
+    if (!currentProof) throw new Error('The server returned an empty proof.');
 
-    // Render the proof
-    loadingEl.remove();
-    renderProof(question, proof);
-    setStatus('idle');
+    nlLoadingEl.remove();
+    proofBlockEl = renderNLProof(currentProof);
 
-    // Persist to history
-    const entry = {
-      question,
-      proof,
-      model,
-      timestamp: new Date().toISOString(),
-    };
-    await saveHistoryEntry(entry);
-    proofHistory.unshift(entry);
-    renderHistorySidebar();
+    let verified = false;
 
-    // Clear input
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const verifyResp = await fetch(`${API_BASE}/api/verify`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ proof: currentProof, lean_model: leanModel }),
+      });
+
+      if (!verifyResp.ok) {
+        const errBody = await verifyResp.json().catch(() => ({}));
+        throw new Error(errBody.error || `Verification error: ${verifyResp.status}`);
+      }
+
+      const verifyResult = await verifyResp.json();
+
+      if (verifyResult.valid) {
+        verified = true;
+        break;
+      }
+
+      // Verification failed — fetch a new NL proof and try again
+      if (attempt < MAX_RETRIES - 1) {
+        const retryResp = await fetch(`${API_BASE}/api/nl`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ question, model }),
+        });
+        if (retryResp.ok) {
+          const retryResult = await retryResp.json();
+          if (retryResult.proof) {
+            currentProof = retryResult.proof;
+            updateProofBlock(proofBlockEl, currentProof);
+          }
+        }
+      }
+    }
+
+    if (verified) {
+      markProofVerified(proofBlockEl);
+
+      const entry = {
+        question,
+        proof:     currentProof,
+        model,
+        timestamp: new Date().toISOString(),
+      };
+      await saveHistoryEntry(entry);
+      proofHistory.unshift(entry);
+      renderHistorySidebar();
+    } else {
+      markProofFailed(proofBlockEl);
+      showError(
+        `Lean could not formally verify this proof after ${MAX_RETRIES} attempt(s). ` +
+        'The proof shown may contain errors.'
+      );
+    }
+
     questionInput.value = '';
     questionInput.style.height = '';
 
   } catch (err) {
-    loadingEl.remove();
+    nlLoadingEl?.remove();
+    if (proofBlockEl) markProofFailed(proofBlockEl);
     showError(err.message || 'Could not connect to the proof server. Make sure server/server.py is running.');
-    setStatus('failed');
     console.error('[Provably]', err);
   } finally {
     setLoading(false);
@@ -365,24 +365,15 @@ async function handleSolve() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// PROOF RENDERING  (single continuous block — no step-by-step)
-// ══════════════════════════════════════════════════════════════════
+// Rendering
 
-/**
- * renderProof(question, proofText)
- *
- * Renders the theorem statement and the full proof as two
- * continuous blocks with Markdown + KaTeX rendering.
- */
-function renderProof(question, proofText) {
-  // ── Theorem / question block ──────────────────────────────────
+function renderQuestion(question) {
   const qBlock = document.createElement('div');
   qBlock.className = 'proof-question';
 
   const qLabel = document.createElement('span');
   qLabel.className   = 'proof-label';
-  qLabel.textContent = 'Theorem';
+  qLabel.textContent = 'Question';
 
   const qContent = document.createElement('div');
   qContent.innerHTML = renderMarkdownMath(question);
@@ -390,30 +381,66 @@ function renderProof(question, proofText) {
   qBlock.appendChild(qLabel);
   qBlock.appendChild(qContent);
   stepsArea.appendChild(qBlock);
+  stepsArea.scrollTop = 0;
+}
 
-  // ── Proof block ───────────────────────────────────────────────
+function renderNLProof(proofText) {
   const pBlock = document.createElement('div');
-  pBlock.className = 'proof-block';
+  pBlock.className = 'proof-block proof-unverified';
+
+  const banner = document.createElement('div');
+  banner.className = 'verifying-banner';
+  banner.innerHTML = `
+    <span class="verifying-banner-dots">
+      <span></span><span></span><span></span>
+    </span>
+    Verifying with Lean…
+  `;
 
   const pLabel = document.createElement('span');
   pLabel.className   = 'proof-label';
   pLabel.textContent = 'Proof';
 
   const pContent = document.createElement('div');
+  pContent.className = 'proof-content';
   pContent.innerHTML = renderMarkdownMath(proofText);
 
+  pBlock.appendChild(banner);
   pBlock.appendChild(pLabel);
   pBlock.appendChild(pContent);
   stepsArea.appendChild(pBlock);
 
-  // Scroll to top of proof
+  return pBlock;
+}
+
+function updateProofBlock(pBlock, proofText) {
+  const content = pBlock.querySelector('.proof-content');
+  if (content) content.innerHTML = renderMarkdownMath(proofText);
+}
+
+function markProofVerified(pBlock) {
+  pBlock.classList.remove('proof-unverified');
+  const banner = pBlock.querySelector('.verifying-banner');
+  if (banner) banner.remove();
+}
+
+function markProofFailed(pBlock) {
+  pBlock.classList.remove('proof-unverified');
+  pBlock.classList.add('proof-failed');
+  const banner = pBlock.querySelector('.verifying-banner');
+  if (banner) banner.remove();
+}
+
+// Used when reloading a history entry (already verified, skip the banner)
+function renderProof(question, proofText) {
+  renderQuestion(question);
+  const pBlock = renderNLProof(proofText);
+  markProofVerified(pBlock);
   stepsArea.scrollTop = 0;
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════════════
+// Helpers
 
 function clearPreviousProof() {
   Array.from(stepsArea.children).forEach(child => {
@@ -429,17 +456,16 @@ function resetToWelcome() {
   questionInput.focus();
   document.querySelectorAll('.sidebar-history-item')
     .forEach(el => el.classList.remove('active'));
-  setStatus('idle');
 }
 
-function showLoading() {
+function showLoading(msg = 'Generating &amp; verifying proof…') {
   const row = document.createElement('div');
   row.className = 'loading-row';
   row.innerHTML = `
     <div class="loading-dots" aria-label="Generating proof">
       <span></span><span></span><span></span>
     </div>
-    <span>Generating &amp; verifying proof…</span>
+    <span>${msg}</span>
   `;
   stepsArea.appendChild(row);
   row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -474,9 +500,7 @@ function truncate(str, maxLen) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// MOBILE SIDEBAR
-// ══════════════════════════════════════════════════════════════════
+// Mobile sidebar
 
 function toggleSidebar() {
   const isOpen = sidebar.classList.toggle('open');

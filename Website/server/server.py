@@ -22,15 +22,13 @@ import requests as http_requests
 from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_cors import CORS
 
-# ── App Setup ──────────────────────────────────────────────────────
+# App setup
 app = Flask(__name__, static_folder=None)
-CORS(app)  # Allow cross-origin requests from the browser
+CORS(app)
 
-# Root of the web files is the parent directory (New/)
 WEB_ROOT   = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Data files live alongside server.py in New/server/
 HISTORY_FILE      = os.path.join(SERVER_DIR, 'history.json')
 MODELS_FILE       = os.path.join(SERVER_DIR, 'available_models.json')
 LEAN_MODELS_FILE  = os.path.join(SERVER_DIR, 'available_lean_models.json')
@@ -40,13 +38,10 @@ PROOF_API_BASE = 'http://127.0.0.1:8000'
 
 # Lean verification settings
 LEAN_ATTEMPTS   = 3      # how many times the Lean model tries to write the Lean proof
-CLAUDE_FIX      = False  # whether Claude attempts to patch Lean syntax errors
+CLAUDE_FIX      = True  # whether Claude attempts to patch Lean syntax errors
 MAX_NL_RETRIES  = 3      # how many NL proofs to generate before giving up
 
 
-# ══════════════════════════════════════════════════════════════════
-# HELPERS — JSON persistence
-# ══════════════════════════════════════════════════════════════════
 
 def load_history():
     """Return the history list; empty list on any error."""
@@ -65,9 +60,7 @@ def save_history(history):
         json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-# ══════════════════════════════════════════════════════════════════
 # STATIC FILE SERVING
-# ══════════════════════════════════════════════════════════════════
 
 @app.route('/')
 def serve_index():
@@ -80,9 +73,7 @@ def serve_static(filename):
     return send_from_directory(WEB_ROOT, filename)
 
 
-# ══════════════════════════════════════════════════════════════════
 # API — Models
-# ══════════════════════════════════════════════════════════════════
 
 @app.route('/api/models', methods=['GET'])
 def api_models():
@@ -116,9 +107,7 @@ def api_lean_models():
         return jsonify({'error': 'available_lean_models.json is malformed'}), 500
 
 
-# ══════════════════════════════════════════════════════════════════
 # API — History
-# ══════════════════════════════════════════════════════════════════
 
 @app.route('/api/history', methods=['GET'])
 def api_history_get():
@@ -128,6 +117,20 @@ def api_history_get():
     """
     history = load_history()
     return jsonify(history)
+
+
+@app.route('/api/history/<int:index>', methods=['DELETE'])
+def api_history_delete(index):
+    """
+    Deletes the history entry at the given zero-based index.
+    Called by the front-end when the user clicks the trash-can button.
+    """
+    history = load_history()
+    if index < 0 or index >= len(history):
+        return jsonify({'error': 'Index out of range'}), 404
+    history.pop(index)
+    save_history(history)
+    return jsonify({'status': 'deleted'})
 
 
 @app.route('/api/history', methods=['POST'])
@@ -153,16 +156,14 @@ def api_history_post():
         'model':     model,
         'timestamp': timestamp,
     }
-    history.insert(0, entry)   # newest first
-    history = history[:50]      # cap at 50 entries
+    history.insert(0, entry)
+    history = history[:50]
     save_history(history)
 
     return jsonify({'status': 'saved'})
 
 
-# ══════════════════════════════════════════════════════════════════
 # API — Proof Generation
-# ══════════════════════════════════════════════════════════════════
 
 @app.route('/api/ask', methods=['POST'])
 def api_ask():
@@ -199,7 +200,7 @@ def api_ask():
     try:
         for attempt in range(1, MAX_NL_RETRIES + 1):
 
-            # ── Step 1: Generate natural-language proof ──────────────
+            # Generate natural-language proof
             nl_resp = http_requests.post(
                 f'{PROOF_API_BASE}/nl/',
                 json=nl_payload,
@@ -211,17 +212,18 @@ def api_ask():
             if not proof:
                 return jsonify({'error': 'The proof API returned an empty response.'}), 502
 
-            # ── Step 2: Verify with Lean ─────────────────────────────
+            # Verify with Lean
             verify_payload = {
                 'proof':          proof,
                 'model':          lean_model,
                 'lean_attempts':  LEAN_ATTEMPTS,
                 'claude_fix_this': CLAUDE_FIX,
+                'local_verify':   False,
             }
             verify_resp = http_requests.post(
                 f'{PROOF_API_BASE}/lean-verify/',
                 json=verify_payload,
-                timeout=1200,   # Lean compilation can be slow
+                timeout=1200,   # Lean compilation can be SLOW
             )
             verify_resp.raise_for_status()
             valid = verify_resp.json().get('valid', False)
@@ -229,7 +231,7 @@ def api_ask():
             if valid:
                 return jsonify({'proof': proof})
 
-            # Not valid — loop and try a new NL proof (up to MAX_NL_RETRIES)
+
 
         return jsonify({
             'error': (
@@ -258,9 +260,106 @@ def api_ask():
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
 
-# ══════════════════════════════════════════════════════════════════
+# API — NL Generation
+
+@app.route('/api/nl', methods=['POST'])
+def api_nl():
+    """
+    Generates a natural-language proof without verifying it.
+    The frontend calls this first, displays the result immediately,
+    then calls /api/verify to check it with Lean.
+
+    Receives:  { "question": "...", "model": "..." }
+    Returns:   { "proof": "..." }
+    """
+    data     = request.get_json(silent=True) or {}
+    question = data.get('question', '').strip()
+    model    = data.get('model', 'claude-sonnet-4-5-20250929').strip()
+
+    if not question:
+        return jsonify({'error': 'No question provided'}), 400
+
+    try:
+        nl_resp = http_requests.post(
+            f'{PROOF_API_BASE}/nl/',
+            json={'query': question, 'model': model},
+            timeout=120,
+        )
+        nl_resp.raise_for_status()
+        proof = nl_resp.json().get('proof', '')
+
+        if not proof:
+            return jsonify({'error': 'The proof API returned an empty response.'}), 502
+
+        return jsonify({'proof': proof})
+
+    except http_requests.exceptions.ConnectionError:
+        return jsonify({
+            'error': (
+                'Cannot reach the proof generation server at port 8000. '
+                'Please start the Provably API: uvicorn API:provablyAPI --port 8000'
+            )
+        }), 503
+    except http_requests.exceptions.Timeout:
+        return jsonify({'error': 'Proof generation timed out.'}), 504
+    except http_requests.exceptions.HTTPError as e:
+        return jsonify({'error': f'Proof API returned an error: {e.response.status_code}'}), 502
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
+# API — Lean Verification
+
+@app.route('/api/verify', methods=['POST'])
+def api_verify():
+    """
+    Verifies a natural-language proof with Lean.
+    The frontend calls this after displaying the NL proof.
+
+    Receives:  { "proof": "...", "lean_model": "aristotle" }
+    Returns:   { "valid": true|false }
+    """
+    data       = request.get_json(silent=True) or {}
+    proof      = data.get('proof', '').strip()
+    lean_model = data.get('lean_model', 'aristotle').strip()
+
+    if not proof:
+        return jsonify({'error': 'No proof provided'}), 400
+
+    verify_payload = {
+        'proof':           proof,
+        'model':           lean_model,
+        'lean_attempts':   LEAN_ATTEMPTS,
+        'claude_fix_this': CLAUDE_FIX,
+        'local_verify':    False,
+    }
+
+    try:
+        verify_resp = http_requests.post(
+            f'{PROOF_API_BASE}/lean-verify/',
+            json=verify_payload,
+            timeout=1200,
+        )
+        verify_resp.raise_for_status()
+        valid = verify_resp.json().get('valid', False)
+        return jsonify({'valid': valid})
+
+    except http_requests.exceptions.ConnectionError:
+        return jsonify({
+            'error': (
+                'Cannot reach the proof generation server at port 8000. '
+                'Please start the Provably API: uvicorn API:provablyAPI --port 8000'
+            )
+        }), 503
+    except http_requests.exceptions.Timeout:
+        return jsonify({'error': 'Lean verification timed out.'}), 504
+    except http_requests.exceptions.HTTPError as e:
+        return jsonify({'error': f'Proof API returned an error: {e.response.status_code}'}), 502
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
 # ENTRY POINT
-# ══════════════════════════════════════════════════════════════════
 
 if __name__ == '__main__':
     print()
@@ -273,6 +372,8 @@ if __name__ == '__main__':
     print('  ║     GET  /api/lean-models   ← Lean verify models  ║')
     print('  ║     GET  /api/history       ← proof history       ║')
     print('  ║     POST /api/history       ← save proof entry    ║')
+    print('  ║     POST /api/nl            ← generate NL proof   ║')
+    print('  ║     POST /api/verify        ← Lean verification   ║')
     print('  ║     POST /api/ask           ← generate+verify     ║')
     print('  ║                                                   ║')
     print('  ║   Requires: proof API on http://127.0.0.1:8000    ║')

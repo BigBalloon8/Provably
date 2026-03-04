@@ -548,15 +548,49 @@ img, svg {
 }
 
 .sidebar-history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
   color: var(--text-2);
+  cursor: pointer;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.history-item-text {
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.history-delete-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border-radius: 3px;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition), background-color var(--transition);
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background-color var(--transition), color var(--transition);
+  line-height: 0;
+}
+
+.sidebar-history-item:hover .history-delete-btn {
+  opacity: 1;
+}
+
+.history-delete-btn:hover {
+  color: var(--error);
+  background-color: rgba(176, 74, 74, 0.1);
+  opacity: 1;
 }
 
 .sidebar-history-item:hover {
@@ -1189,7 +1223,7 @@ img, svg {
 
 .proof-question {
   border-left: 3px solid var(--accent);
-  background: var(--accent-light);
+  background: var(--surface);
 }
 
 .proof-block {
@@ -1285,11 +1319,10 @@ img, svg {
   margin: 0.5rem 0;
 }
 
-/* KaTeX display math spacing */
 .proof-question .katex-display,
 .proof-block .katex-display {
   margin: 0.85rem 0;
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 /* Inline KaTeX sizing fix */
@@ -1297,6 +1330,58 @@ img, svg {
 .proof-block .katex {
   font-size: 1.05em;
 }
+
+
+/* ── Proof block — unverified / verifying state ─────────────────── */
+.proof-block.proof-unverified {
+  border-left-color: var(--warning);
+  background: #FFFBF4;
+}
+
+.proof-block.proof-unverified .proof-label {
+  color: var(--warning);
+}
+
+/* ── Proof block — failed / unverifiable state ──────────────────── */
+.proof-block.proof-failed {
+  border-left-color: var(--error);
+  background: #FDF0F0;
+}
+
+.proof-block.proof-failed .proof-label {
+  color: var(--error);
+}
+
+.verifying-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.8rem;
+  background: rgba(192, 122, 32, 0.09);
+  border: 1px solid rgba(192, 122, 32, 0.22);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--warning);
+  margin-bottom: 0.75rem;
+}
+
+.verifying-banner-dots {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.verifying-banner-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--warning);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.verifying-banner-dots span:nth-child(2) { animation-delay: 0.2s; }
+.verifying-banner-dots span:nth-child(3) { animation-delay: 0.4s; }
 
 
 /* ── Textarea input ──────────────────────────────────────────────── */

@@ -6,7 +6,6 @@
   <title>Provably — Proof Generator</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- KaTeX — for rendering mathematical equations beautifully -->
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -23,21 +22,17 @@
     crossorigin="anonymous"
   ></script>
 
-  <!-- Marked.js — for rendering Markdown output -->
   <script
     defer
     src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"
     crossorigin="anonymous"
   ></script>
 
-  <!-- Our dashboard script (deferred so CDN libs load first) -->
   <script defer src="script.js"></script>
 </head>
 <body class="dashboard-page">
 
-  <!-- ── Navigation ──────────────────────────────────────────────── -->
   <nav class="nav">
-    <!-- Mobile: sidebar toggle -->
     <button
       class="sidebar-toggle"
       id="sidebarToggle"
@@ -51,38 +46,11 @@
       </svg>
     </button>
 
-    <!-- Brand -->
     <a href="index.html" class="nav-brand nav-brand-link">
-      <span class="brand-icon">∀</span>
       <span class="brand-name">Provably</span>
+      <span class="brand-icon">...◻</span>
     </a>
 
-    <!-- Right: status lights -->
-    <div class="nav-right">
-      <div class="status-lights" aria-label="Model status indicator" role="status">
-        <!-- Green — Idle -->
-        <span
-          class="status-light light-idle"
-          id="lightIdle"
-          title="Idle — ready to generate a proof"
-          aria-label="Idle"
-        ></span>
-        <!-- Orange — Thinking -->
-        <span
-          class="status-light light-thinking"
-          id="lightThinking"
-          title="Thinking — generating &amp; verifying proof…"
-          aria-label="Thinking"
-        ></span>
-        <!-- Red — Failed -->
-        <span
-          class="status-light light-failed"
-          id="lightFailed"
-          title="Failed — an error occurred"
-          aria-label="Failed"
-        ></span>
-      </div>
-    </div>
   </nav>
 
   <!-- ── Dashboard Body ───────────────────────────────────────────── -->
@@ -145,7 +113,7 @@
 
         <!-- Default welcome state -->
         <div class="welcome-state" id="welcomeState">
-          <div class="welcome-state-icon">∀</div>
+          <div class="welcome-state-icon">...◻</div>
           <h2>Ready to generate a proof?</h2>
           <p>
             State a theorem or mathematical claim in the box below and press
@@ -193,7 +161,6 @@
     </main>
   </div><!-- /.dashboard-body -->
 
-  <!-- Sidebar backdrop (mobile) -->
   <div
     id="sidebarBackdrop"
     style="
