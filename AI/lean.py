@@ -7,8 +7,11 @@ import anthropic
 import asyncio
 import re
 import os
+try:
+    from AI.verify import lean_file_output
+except ModuleNotFoundError:
+    from verify import lean_file_output
 
-from verify import lean_file_output
 #-----------------------------------------------------------------------------------------------------
 def get_lean(proof):
     return f"""This is a claim and proof written in natural language can you write it in lean as 1 to 1 as possible even if there is mistakes
@@ -114,7 +117,6 @@ def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929", thinkin
             {"role": "user", "content": prompt}
         ]
         )
-        print(message.content)
         return message.content[1].text
     else:
         message = client.messages.create(

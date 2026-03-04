@@ -5,13 +5,16 @@ import torch
 
 def get_proof(claim):
     return f"""Prove the following {claim},
-Use the following format
+Use the following format write the solution in markdown
 
 Claim: ...
 
 PROVIDED SOLUTION
 ...
 """
+
+def provablyify(text:str):
+    return text.replace("∎", "◻")
 
 def run_transformer(prompt, model_id):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -26,7 +29,7 @@ def run_transformer(prompt, model_id):
     print(f"{model_id} Started")
     outputs = model.generate(inputs, max_new_tokens=4096)
     print(f"{model_id} Completed")
-    return tokenizer.batch_decode(outputs)
+    return provablyify(tokenizer.batch_decode(outputs)[0])
 
 
 def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
@@ -42,5 +45,5 @@ def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
         ]
     )
     print("Claude Complete")
-    return message.content[0].text
+    return provablyify(message.content[0].text)
 

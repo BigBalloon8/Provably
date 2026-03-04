@@ -46,8 +46,10 @@ def main(args):
             raise RecursionError("Solution not found")
         attempts += 1
         # NL
-        if args.nl == "anthropic":
-            response = query_claude(query)
+        if args.nl == "anthropic" or "claude" in args.nl:
+            if args.nl == "anthropic":
+                args.nl = "claude-sonnet-4-5-20250929"
+            response = query_claude(query, args.nl)
         else:
             response = run_transformer_lean(query, args.nl)
         
