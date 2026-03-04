@@ -28,9 +28,10 @@ def main(args):
     # Query
     query = input("Enter Maths Claim: ")
     if query == "".strip(" "):
-        query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
+        #query = r"Let G be a group and H, K be two subgroups of G with |H| = 65 and|K| = 56. Prove that H ∩ K = {e}."
         #query = r"Let x be a real number with 0 < x < 1 and let (a_n)n∈N be a sequence of positive real numbers such that, for all n, \frac{a_{n+1}}{a_n}<x. Prove the series \sum^\infty_{n=1}a_n converges."
         #query = r"Let G be a group, prove the following are equivalent\n1. G is abelian\n2. For all g,h \in G $(g * h)^2 = g^2 * h^2$"
+        query = r"Let x be a non-negative real number and n be a non-negative integer, prove (1 + x)^n ≥ 1 + nx"
         print(f"No user question given using: {query}")
     
     logger.info(query)
@@ -61,7 +62,7 @@ def main(args):
             query_transformer(response, model_id= args.lean, logger=logger, attempts=LEAN_ATTEMPTS)
 
         # check lean and NL are the same
-        NL_correctness = verify_equality(response)
+        NL_correctness = verify_equality(response, "claude-opus-4-6")
         
     print(response)
 

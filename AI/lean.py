@@ -99,18 +99,35 @@ def get_lean_code_block(text):
         code = imports + "\n\n" + code
     return code
 
-def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929") -> str:
+def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929", thinking=False) -> str:
     """Send a prompt to Claude and return the response."""
     client = anthropic.Anthropic()  # Uses ANTHROPIC_API_KEY env variable
-    
-    message = client.messages.create(
+    if thinking:
+        message = client.messages.create(
         model=model,
-        max_tokens=4092,
+        max_tokens=8192,
+        thinking={
+        "type": "enabled",
+        "budget_tokens":4096
+        },
         messages=[
             {"role": "user", "content": prompt}
         ]
-    )
-    return message.content[0].text
+        )
+        print(message.content)
+        return message.content[1].text
+    else:
+        message = client.messages.create(
+        model=model,
+        max_tokens=1024*8,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+
+        )
+        return message.content[0].text
+
+    
 
 
 def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=None, attempts=1, claude_fix_this=True):
@@ -118,9 +135,9 @@ def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logg
     seq = get_lean_deepseek(prompt)
 
     for i in range(attempts):
-        print(f"Waiting for Deepseek (Attempt {i})")
+        print(f"Waiting for Deepseek (Attempt {i+1})")
         if i > 0 and claude_fix_this:
-            out = query_claude(seq, model="claude-opus-4-6")
+            out = query_claude(seq, model="claude-opus-4-6", thinking=True)
         else:
             if "claude" in model_id:
                 out = query_claude(seq, model=model_id)

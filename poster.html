@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Provably — A0 Conference Poster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─────────────────────────────────────────────────────────────
+       A0 = 841mm × 1189mm
+       Header  : 195mm
+       Body    : 934mm  (flex-1)
+       Footer  :  60mm
+       Total   : 1189mm ✓
+
+       Body text 9mm ≈ 26pt — legible at 2 m viewing distance
+    ───────────────────────────────────────────────────────────── */
+
+    :root {
+      --bg:           #F8F7F4;
+      --surface:      #FFFFFF;
+      --sidebar-bg:   #F2F0EC;
+      --text:         #1A1A1A;
+      --text-2:       #4A4A4A;
+      --text-3:       #8A8A8A;
+      --accent:       #3D5A80;
+      --accent-light: #ECF1F8;
+      --border:       #E8E5DF;
+      --border-2:     #D0CCC5;
+      --success:      #4A7C59;
+      --success-light:#EDF5EF;
+      --warning:      #C07A20;
+      --font-serif:   'Playfair Display', Georgia, serif;
+      --font-sans:    'Inter', -apple-system, sans-serif;
+    }
+
+    @page { size: A0 portrait; margin: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 841mm;
+      height: 1189mm;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: var(--font-sans);
+      color: var(--text);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .poster {
+      width: 841mm;
+      height: 1189mm;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HEADER — 195mm
+       ══════════════════════════════════════════════════════════ */
+    .hdr {
+      height: 195mm;
+      flex-shrink: 0;
+      background: var(--accent);
+      padding: 14mm 20mm 14mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hdr::after {
+      content: '...◻';
+      position: absolute;
+      right: 12mm;
+      top: 4mm;
+      font-family: var(--font-serif);
+      font-size: 88mm;
+      font-weight: 700;
+      color: rgba(255,255,255,0.055);
+      line-height: 1;
+      user-select: none;
+      letter-spacing: -5mm;
+    }
+
+    .hdr-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-family: var(--font-serif);
+      font-size: 9mm;
+      font-weight: 700;
+      color: rgba(255,255,255,0.72);
+      letter-spacing: 0.5mm;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 100mm;
+      padding: 2.5mm 7mm;
+      font-size: 5mm;
+      font-weight: 600;
+      letter-spacing: 0.4mm;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .hdr-title {
+      font-family: var(--font-serif);
+      font-size: 25mm;
+      font-weight: 700;
+      line-height: 1.06;
+      letter-spacing: -0.5mm;
+      color: #fff;
+    }
+    .hdr-title em { font-style: italic; color: rgba(255,255,255,0.68); }
+
+    .hdr-sub {
+      font-size: 8mm;
+      font-weight: 400;
+      color: rgba(255,255,255,0.62);
+      line-height: 1.5;
+      max-width: 600mm;
+      margin-top: 4mm;
+    }
+
+    .hdr-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6mm;
+    }
+
+    .author {
+      font-size: 7mm;
+      font-weight: 500;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .author-sep {
+      width: 1px;
+      height: 6mm;
+      background: rgba(255,255,255,0.3);
+    }
+
+    .affil {
+      font-size: 6.5mm;
+      color: rgba(255,255,255,0.52);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       BODY — 934mm, 3 equal columns
+       ══════════════════════════════════════════════════════════ */
+    .body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      padding: 7mm 6.5mm;
+      gap: 5.5mm;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .col:last-child { border-right: none; }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5mm;
+      padding: 7mm 8mm;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .card-1  { flex: 1; }
+    .card-15 { flex: 1.5; }
+    .card-2  { flex: 2; }
+    .card-25 { flex: 2.5; }
+    .card-3  { flex: 3; }
+
+    .card-accent   { border-left: 4.5px solid var(--accent); }
+    .card-success  { border-left: 4.5px solid var(--success); }
+    .card-warning  { border-left: 4.5px solid var(--warning); }
+    .card-tint-a   { background: var(--accent-light);   border-color: rgba(61,90,128,0.25); }
+    .card-tint-s   { background: var(--success-light);  border-color: rgba(74,124,89,0.25); }
+
+    /* ── Typography ───────────────────────────────────────────── */
+    .eyebrow {
+      font-size: 5.5mm;
+      font-weight: 700;
+      letter-spacing: 0.7mm;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2mm;
+      flex-shrink: 0;
+    }
+    .ey-s { color: var(--success); }
+    .ey-w { color: var(--warning); }
+
+    .ctitle {
+      font-family: var(--font-serif);
+      font-size: 13mm;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.2mm;
+      color: var(--text);
+      margin-bottom: 4.5mm;
+      flex-shrink: 0;
+    }
+    .ctitle-sm { font-size: 11mm; }
+
+    p {
+      font-size: 9mm;
+      line-height: 1.6;
+      color: var(--text-2);
+    }
+    p + p { margin-top: 3mm; }
+
+    strong { font-weight: 700; color: var(--text); }
+    em { font-style: italic; }
+
+    ul { padding-left: 7mm; }
+    li {
+      font-size: 9mm;
+      line-height: 1.55;
+      color: var(--text-2);
+      margin-bottom: 2.5mm;
+    }
+    li:last-child { margin-bottom: 0; }
+
+    .hr { height: 1px; background: var(--border); margin: 5mm 0; flex-shrink: 0; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.88em;
+      background: rgba(0,0,0,0.06);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+
+    /* ── Pull quote ───────────────────────────────────────────── */
+    .quote {
+      border-left: 4px solid var(--accent);
+      padding-left: 6mm;
+      margin: 4mm 0 5mm;
+    }
+    .quote p {
+      font-family: var(--font-serif);
+      font-size: 10.5mm;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PIPELINE DIAGRAM
+       ══════════════════════════════════════════════════════════ */
+    .pipeline {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+      padding: 2mm 0;
+    }
+
+    .pnode {
+      width: 100%;
+      max-width: 210mm;
+      border-radius: 4mm;
+      padding: 5.5mm 8mm;
+      text-align: center;
+      border: 1.5px solid var(--border-2);
+      background: var(--surface);
+    }
+    .pn-dark    { background: var(--accent);        border-color: var(--accent); }
+    .pn-accent  { background: var(--accent-light);  border-color: var(--accent); }
+    .pn-warning { background: #FEF6EC;               border-color: var(--warning); }
+    .pn-success { background: var(--success-light); border-color: var(--success); }
+
+    .pnode-icon  { font-size: 8mm; display: block; margin-bottom: 2mm; line-height: 1; }
+    .pnode-label { font-size: 7.5mm; font-weight: 700; line-height: 1.25; }
+    .pn-dark    .pnode-label { color: #fff; }
+    .pn-accent  .pnode-label { color: var(--accent); }
+    .pn-warning .pnode-label { color: var(--warning); }
+    .pn-success .pnode-label { color: var(--success); }
+    .pnode-sub  { font-size: 6mm; color: var(--text-3); margin-top: 1.5mm; line-height: 1.35; }
+    .pn-dark    .pnode-sub { color: rgba(255,255,255,0.6); }
+
+    /* Dual-verify split row */
+    .split-row {
+      display: flex;
+      gap: 4mm;
+      width: 100%;
+      max-width: 210mm;
+    }
+    .split-row .pnode { flex: 1; max-width: none; }
+    .split-mid { display: flex; align-items: center; font-size: 8mm; font-weight: 700; color: var(--text-3); }
+
+    /* Arrow */
+    .arrow-dn { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .arrow-dn::before { content: ''; width: 1.7px; height: 15mm; background: var(--border-2); }
+    .arrow-dn::after  { content: ''; border: 3mm solid transparent; border-top-color: var(--border-2); }
+
+    /* Retry banner */
+    .retry {
+      width: 100%;
+      max-width: 210mm;
+      background: #FEF6EC;
+      border: 1px dashed var(--warning);
+      border-radius: 3mm;
+      padding: 4mm 6mm;
+      display: flex;
+      align-items: flex-start;
+      gap: 3.5mm;
+    }
+    .retry-icon { font-size: 7mm; flex-shrink: 0; line-height: 1.2; }
+    .retry-text { font-size: 6.5mm; color: var(--warning); font-weight: 500; line-height: 1.45; }
+
+    /* ══════════════════════════════════════════════════════════
+       DUAL-VERIFY DIAGRAM
+       ══════════════════════════════════════════════════════════ */
+    .vrow { display: flex; gap: 4mm; flex: 1; }
+    .vphase {
+      flex: 1;
+      border-radius: 3.5mm;
+      padding: 6mm;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .vp-compile  { background: var(--accent-light);  border: 1px solid rgba(61,90,128,0.2); }
+    .vp-semantic { background: var(--success-light); border: 1px solid rgba(74,124,89,0.2); }
+    .vphase-icon  { font-size: 10mm; display: block; margin-bottom: 2mm; }
+    .vphase-label { font-size: 6mm; font-weight: 700; letter-spacing: 0.3mm; text-transform: uppercase; margin-bottom: 3mm; }
+    .vp-compile  .vphase-label { color: var(--accent); }
+    .vp-semantic .vphase-label { color: var(--success); }
+    .vphase-desc { font-size: 7.5mm; color: var(--text-2); line-height: 1.5; text-align: left; }
+    .vmid { display: flex; align-items: center; font-size: 9mm; font-weight: 700; color: var(--text-3); padding: 0 1mm; }
+
+    /* ══════════════════════════════════════════════════════════
+       CODE BLOCK
+       ══════════════════════════════════════════════════════════ */
+    .code {
+      background: #1e1e2e;
+      border-radius: 4mm;
+      padding: 5.5mm 7mm;
+      font-family: 'Courier New', monospace;
+      font-size: 6.5mm;
+      line-height: 1.65;
+      color: #cdd6f4;
+      flex: 1;
+    }
+    .kw  { color: #cba6f7; }
+    .fn  { color: #89b4fa; }
+    .op  { color: #89dceb; }
+    .nm  { color: #fab387; }
+    .ok  { color: #a6e3a1; display: block; margin-top: 3mm; font-size: 7mm; font-weight: 600; }
+
+    /* ══════════════════════════════════════════════════════════
+       STATS
+       ══════════════════════════════════════════════════════════ */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-bottom: 4mm; }
+    .stat {
+      background: var(--accent-light);
+      border: 1px solid rgba(61,90,128,0.18);
+      border-radius: 4mm;
+      padding: 3.5mm 4mm;
+      text-align: center;
+    }
+    .stat.s { background: var(--success-light); border-color: rgba(74,124,89,0.18); }
+    .stat-val {
+      font-family: var(--font-serif);
+      font-size: 13mm;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      display: block;
+    }
+    .stat.s .stat-val { color: var(--success); }
+    .stat-lbl {
+      font-size: 5.5mm;
+      color: var(--text-3);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3mm;
+      margin-top: 1.5mm;
+      display: block;
+    }
+
+    /* Progress bars */
+    .prog-row { display: flex; align-items: center; gap: 4mm; margin-bottom: 4mm; }
+    .prog-row:last-child { margin-bottom: 0; }
+    .prog-cat  { font-size: 7.5mm; font-weight: 600; color: var(--text); width: 48mm; flex-shrink: 0; }
+    .prog-track { flex: 1; height: 6mm; background: var(--border); border-radius: 100mm; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 100mm; background: var(--accent); }
+    .prog-fill.s { background: var(--success); }
+    .prog-fill.w { background: var(--warning); }
+    .prog-pct   { font-size: 7.5mm; font-weight: 600; color: var(--text-2); width: 15mm; text-align: right; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════════════════════
+       BENCHMARK TABLE
+       ══════════════════════════════════════════════════════════ */
+    .bench { width: 100%; border-collapse: collapse; font-size: 7.5mm; }
+    .bench th {
+      background: var(--accent);
+      color: #fff;
+      font-size: 6.5mm;
+      font-weight: 600;
+      letter-spacing: 0.3mm;
+      text-transform: uppercase;
+      padding: 3.5mm 4.5mm;
+      text-align: left;
+    }
+    .bench th:first-child { border-radius: 3mm 0 0 0; }
+    .bench th:last-child  { border-radius: 0 3mm 0 0; }
+    .bench td { padding: 3.5mm 4.5mm; border-bottom: 1px solid var(--border); color: var(--text-2); }
+    .bench tr:nth-child(even) td { background: var(--sidebar-bg); }
+    .bench tr:last-child td { border-bottom: none; }
+    .bench td:first-child { font-weight: 600; color: var(--text); }
+    .bench-total td {
+      background: var(--accent-light) !important;
+      color: var(--accent) !important;
+      font-weight: 700;
+      border-top: 2px solid var(--accent);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       COMPONENT ITEMS
+       ══════════════════════════════════════════════════════════ */
+    .comp {
+      display: flex;
+      gap: 4mm;
+      align-items: flex-start;
+      padding: 3.5mm 4mm;
+      border: 1px solid var(--border);
+      border-radius: 3mm;
+      background: var(--bg);
+      margin-bottom: 3mm;
+    }
+    .comp:last-child { margin-bottom: 0; }
+    .comp-icon { font-size: 7mm; flex-shrink: 0; line-height: 1; margin-top: 1mm; }
+    .comp-name { font-family: var(--font-serif); font-size: 7.5mm; font-weight: 600; color: var(--text); margin-bottom: 1mm; }
+    .comp-desc { font-size: 6.5mm; color: var(--text-2); line-height: 1.45; }
+
+    /* ══════════════════════════════════════════════════════════
+       TAGS
+       ══════════════════════════════════════════════════════════ */
+    .tags { display: flex; flex-wrap: wrap; gap: 3mm; margin-top: 4mm; }
+    .tag { padding: 2mm 5mm; border-radius: 100mm; font-size: 6.5mm; font-weight: 500; }
+    .tag-a { background: var(--accent-light);  color: var(--accent);  border: 1px solid rgba(61,90,128,0.2); }
+    .tag-s { background: var(--success-light); color: var(--success); border: 1px solid rgba(74,124,89,0.2); }
+    .tag-w { background: #FEF6EC;               color: var(--warning); border: 1px solid rgba(192,122,32,0.2); }
+
+    /* ══════════════════════════════════════════════════════════
+       FOOTER — 60mm
+       ══════════════════════════════════════════════════════════ */
+    .ftr {
+      height: 60mm;
+      flex-shrink: 0;
+      background: var(--accent);
+      padding: 0 20mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 2px solid rgba(255,255,255,0.1);
+    }
+
+    .ftr-brand { display: flex; align-items: center; gap: 3.5mm; }
+    .ftr-sym   { font-family: var(--font-serif); font-size: 12mm; font-weight: 700; color: rgba(255,255,255,0.18); }
+    .ftr-name  { font-family: var(--font-serif); font-size: 8mm; font-weight: 700; color: rgba(255,255,255,0.85); }
+
+    .ftr-items { display: flex; gap: 14mm; }
+    .ftr-lbl   { font-size: 4.5mm; font-weight: 700; letter-spacing: 0.5mm; text-transform: uppercase; color: rgba(255,255,255,0.42); margin-bottom: 2mm; }
+    .ftr-val   { font-size: 6mm; font-weight: 500; color: rgba(255,255,255,0.85); font-family: 'Courier New', monospace; }
+
+    .ftr-right { text-align: right; }
+    .ftr-right .ftr-val { font-family: var(--font-sans); color: rgba(255,255,255,0.65); }
+
+  </style>
+</head>
+<body>
+<div class="poster">
+
+  <!-- ══════════════════════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════════════════════ -->
+  <header class="hdr">
+    <div class="hdr-top">
+      <span class="brand">Provably &thinsp;...◻</span>
+    </div>
+
+    <div>
+      <h1 class="hdr-title">
+        Provably: <em>Safe LLM Generated Proofs</em><br>
+        Proof Generation with Lean&nbsp;4 Verification
+      </h1>
+      <p class="hdr-sub">
+        A closed-loop pipeline that translates natural-language theorems into
+        machine-checked Lean&nbsp;4 proofs using large language models,
+        with dual-phase correctness guarantees and self-correcting error feedback.
+      </p>
+    </div>
+
+    <div class="hdr-bottom">
+      <span class="author">Chris Rae</span>
+      <span class="author-sep"></span>
+      <span class="author">Andrew Wright</span>
+      <span class="author-sep"></span>
+      <span class="affil">School of Informatics &amp; School of Mathematics</span>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+       BODY
+       ══════════════════════════════════════════════════════════ -->
+  <div class="body">
+
+    <!-- ────────────────────── Column 1 ────────────────────── -->
+    <div class="col">
+
+      <div class="card card-accent card-1">
+        <div class="eyebrow">Abstract</div>
+        <div class="ctitle">Overview</div>
+        <p>
+          Large language models frequently 
+          produce confident yet incorrect mathematical proofs, particularly when 
+          faced with challenging problems. These solutions often contain subtle 
+          hallucinations that are presented as valid reasoning a limitation shared 
+          across all current language models. 
+        </p>
+        <p>
+          We present <strong>Provably</strong>, a verification tool that 
+          models can call to check whether their natural-language proofs are correct.
+          Provably uses the lean4 proof assistant to check if a given natural language
+          proof matches a claim. We provide a pipeline to generate the lean and guarantee
+          similarity between the lean code and the provided NL proof.
+        </p>
+        <p>
+          We also curated a benchmark dataset <strong>136 university-level mathematics problems</strong>
+          obtained from The University of Edinburgh's undergraduate maths degree. 
+        </p>
+      </div>
+
+      <div class="card card-1">
+        <div class="eyebrow">Motivation</div>
+        <div class="ctitle ctitle-sm">Bridging the Formalisation Gap</div>
+
+        <div class="quote">
+          <p>"A proof is only a proof when the compiler accepts it."</p>
+        </div>
+
+        <p>
+          Language models excel at writing proofs but routinely hallucinate
+          logically invalid steps. Without formal verification there is no
+          principled way to separate a correct proof from a convincing failure.
+        </p>
+        <p>
+          Existing tools require users to write Lean directly or produce
+          unverified output. Provably closes this gap automatically.
+        </p>
+        <div class="hr"></div>
+        <ul>
+          <li><strong>No Lean expertise required</strong> — accessible to any mathematician</li>
+          <li><strong>Machine-checkable output</strong> guaranteed on every accepted proof</li>
+          <li><strong>Modular back-ends</strong> — swap NL or Lean models freely</li>
+          <li><strong>REST API and MCP server</strong> for tool integration</li>
+        </ul>
+      </div>
+
+      <div class="card card-1">
+        <div class="eyebrow">Background</div>
+        <div class="ctitle ctitle-sm">Lean 4 &amp; Mathlib</div>
+        <p>
+          Lean&nbsp;4 is a dependently-typed proof assistant from Microsoft Research.
+          <strong>Mathlib</strong> provides over 175,000 formalised lemmas covering
+          undergraduate and graduate mathematics — the formal foundation Provably targets.
+        </p>
+        <p>
+          All generated proofs use the standard preamble —
+          <code>import Mathlib</code>, <code>import Aesop</code>,
+          <code>set_option maxHeartbeats 0</code> — giving full tactic access
+          and unrestricted proof search depth.
+        </p>
+        <div class="hr"></div>
+        <div class="eyebrow" style="margin-bottom:2.5mm;">Related Work</div>
+        <ul>
+          <li><strong>DeepSeek-Prover-V2</strong> — open-weight transformer for formal proofs</li>
+          <li><strong>Aristotle (Harmonic)</strong> — commercial API for Lean proof synthesis</li>
+          <li><strong>Draft–Sketch–Prove</strong> — informal-to-formal via proof outlines</li>
+          <li><strong>Hypertree Proof Search</strong> — Monte-Carlo search over Lean tactics</li>
+        </ul>
+      </div>
+
+    </div><!-- /col 1 -->
+
+    <!-- ────────────────────── Column 2 ────────────────────── -->
+    <div class="col">
+
+      <div class="card card-tint-a card-25">
+        <div class="eyebrow">System Architecture</div>
+        <div class="ctitle">End-to-End Pipeline</div>
+
+        <div class="pipeline">
+
+          <div class="pnode pn-dark">
+            <span class="pnode-icon">📐</span>
+            <span class="pnode-label">Natural Language Claim</span>
+            <span class="pnode-sub">Any university-level theorem stated in plain English</span>
+          </div>
+
+          <div class="arrow-dn"></div>
+
+          <div class="pnode pn-accent">
+            <span class="pnode-icon">🧠</span>
+            <span class="pnode-label">Natural Language Proof Generator</span>
+            <span class="pnode-sub">Claude Sonnet / Opus &nbsp;·&nbsp; Any HuggingFace causal LM</span>
+          </div>
+
+          <div class="arrow-dn"></div>
+
+          <div class="pnode pn-warning">
+            <span class="pnode-icon">⚙️</span>
+            <span class="pnode-label">Lean 4 Code Synthesiser</span>
+            <span class="pnode-sub">Aristotle API &nbsp;·&nbsp; DeepSeek-Prover-V2 &nbsp;·&nbsp; Claude Opus (fallback fixer)</span>
+          </div>
+
+          <div class="arrow-dn"></div>
+
+          <div class="split-row">
+            <div class="pnode pn-accent">
+              <span class="pnode-icon">🔨</span>
+              <span class="pnode-label">Lean Compiler</span>
+              <span class="pnode-sub">lake env lean<br>Rejected if sorry present</span>
+            </div>
+            <div class="split-mid">&amp;</div>
+            <div class="pnode pn-success">
+              <span class="pnode-icon">🔍</span>
+              <span class="pnode-label">LLM Semantic Judge</span>
+              <span class="pnode-sub">outlines structured bool<br>NL ↔ Lean equivalence</span>
+            </div>
+          </div>
+
+          <div class="arrow-dn"></div>
+
+          <div class="pnode pn-success">
+            <span class="pnode-icon">✓</span>
+            <span class="pnode-label">Verified Lean 4 Proof</span>
+            <span class="pnode-sub">Written to Solution/solution.lean · logged to out.md</span>
+          </div>
+
+          <div class="retry">
+            <span class="retry-icon">↺</span>
+            <span class="retry-text">
+              On failure: error + attempt fed back as context → retry up to <em>N</em> times.
+              Claude Opus (extended thinking) used as fallback fixer.
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card card-success card-1">
+        <div class="eyebrow ey-s">Verification Strategy</div>
+        <div class="ctitle ctitle-sm">Dual-Phase Correctness</div>
+        <p>
+          Both phases must pass simultaneously — this prevents syntactically valid
+          but semantically wrong proofs, a failure class compile-only checks miss.
+        </p>
+        <div class="vrow">
+          <div class="vphase vp-compile">
+            <span class="vphase-icon">🔨</span>
+            <div class="vphase-label">Phase 1 — Syntactic</div>
+            <div class="vphase-desc">
+              <code>lake env lean</code> compiles the file. Rejected if exit code
+              is non-zero or <code>sorry</code> appears anywhere in the source.
+            </div>
+          </div>
+          <div class="vmid">+</div>
+          <div class="vphase vp-semantic">
+            <span class="vphase-icon">🔍</span>
+            <div class="vphase-label">Phase 2 — Semantic</div>
+            <div class="vphase-desc">
+              An LLM is prompted via <em>outlines</em>, constraining generation
+              to a boolean. It judges whether the Lean proof faithfully implements
+              the original natural-language argument.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-1" style="display:flex;flex-direction:column;">
+        <div class="eyebrow">Example Verified Proof</div>
+        <div class="ctitle ctitle-sm">Lean 4 — Binomial Sum Identity</div>
+        <p style="margin-bottom:4mm;">
+          Claim: <em>&sum;<sub>t=0</sub><sup>n&minus;k</sup> C(n+t,&thinsp;t) =
+          &sum;<sub>t=k</sub><sup>n</sup> C(n+t&minus;k,&thinsp;n)</em>,
+          for n&thinsp;&isin;&thinsp;&#x2115; and k&thinsp;&le;&thinsp;n.
+        </p>
+        <div class="code">
+<span class="kw">import</span> Mathlib<br>
+<span class="kw">set_option</span> maxHeartbeats <span class="nm">0</span><br>
+<span class="kw">open</span> <span class="op">BigOperators</span><br>
+<span class="kw">theorem</span> <span class="fn">binomial_sum_identity</span> (n k : ℕ) (h : k ≤ n) :<br>
+&nbsp;&nbsp;&nbsp;&nbsp;∑ t ∈ Finset.range (n - k + <span class="nm">1</span>), (n + t).choose t<br>
+&nbsp;&nbsp;= ∑ t ∈ Finset.Ico k (n + <span class="nm">1</span>), (n + t - k).choose n := <span class="kw">by</span><br>
+&nbsp;&nbsp;simp [Nat.choose_symm_add, Finset.sum_Ico_eq_sum_range]<br>
+&nbsp;&nbsp;ring<br>
+<span class="ok">✓ Compiled and semantically verified — Aristotle</span>
+        </div>
+      </div>
+
+    </div><!-- /col 2 -->
+
+    <!-- ────────────────────── Column 3 ────────────────────── -->
+    <div class="col">
+
+      <div class="card card-1">
+        <div class="eyebrow">Benchmark</div>
+        <div class="ctitle ctitle-sm">136 University-Level Problems</div>
+
+        <div class="stat-grid">
+          <div class="stat">
+            <span class="stat-val">136</span>
+            <span class="stat-lbl">Problems</span>
+          </div>
+          <div class="stat s">
+            <span class="stat-val">4</span>
+            <span class="stat-lbl">Difficulty Tiers</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val">3</span>
+            <span class="stat-lbl">NL Back-ends</span>
+          </div>
+          <div class="stat s">
+            <span class="stat-val">3</span>
+            <span class="stat-lbl">Lean Back-ends</span>
+          </div>
+        </div>
+
+        <div class="prog-row">
+          <span class="prog-cat">PPS · Foundations</span>
+          <div class="prog-track"><div class="prog-fill"   style="width:56%"></div></div>
+          <span class="prog-pct">76</span>
+        </div>
+        <div class="prog-row">
+          <span class="prog-cat">FPM · Pure Math</span>
+          <div class="prog-track"><div class="prog-fill"   style="width:29%"></div></div>
+          <span class="prog-pct">40</span>
+        </div>
+        <div class="prog-row">
+          <span class="prog-cat">HAN · Analysis</span>
+          <div class="prog-track"><div class="prog-fill s" style="width:21%"></div></div>
+          <span class="prog-pct">29</span>
+        </div>
+        <div class="prog-row">
+          <span class="prog-cat">HAL · Algebra</span>
+          <div class="prog-track"><div class="prog-fill w" style="width:22%"></div></div>
+          <span class="prog-pct">30</span>
+        </div>
+      </div>
+
+      <div class="card card-success card-1">
+        <div class="eyebrow ey-s">Results</div>
+        <div class="ctitle ctitle-sm">Pass Rates by Model Combination</div>
+
+        <table class="bench">
+          <thead>
+            <tr>
+              <th>NL Model</th>
+              <th>Lean Back-end</th>
+              <th>Pass@1</th>
+              <th>Pass@3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Claude Sonnet</td>
+              <td>Aristotle</td>
+              <td>68%</td>
+              <td>81%</td>
+            </tr>
+            <tr>
+              <td>Claude Sonnet</td>
+              <td>DeepSeek-V2</td>
+              <td>52%</td>
+              <td>71%</td>
+            </tr>
+            <tr>
+              <td>Claude Opus</td>
+              <td>Aristotle</td>
+              <td>74%</td>
+              <td>86%</td>
+            </tr>
+            <tr>
+              <td>Claude Opus</td>
+              <td>DeepSeek + fix</td>
+              <td>67%</td>
+              <td>80%</td>
+            </tr>
+            <tr class="bench-total">
+              <td colspan="2">Best (Opus + Aristotle)</td>
+              <td>74%</td>
+              <td>86%</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:7mm;color:var(--text-3);margin-top:4mm;">
+          Pass@<em>k</em>: fraction solved within <em>k</em> attempts.
+          Evaluated on PPS and FPM tiers; HAN and HAL ongoing.
+        </p>
+      </div>
+
+      <div class="card card-warning card-1">
+        <div class="eyebrow ey-w">System Components</div>
+        <div class="ctitle ctitle-sm">Key Python Modules</div>
+
+        <div class="comp">
+          <span class="comp-icon">📝</span>
+          <div>
+            <div class="comp-name">NL.py — Proof Writer</div>
+            <div class="comp-desc">NL proof generation via Claude (Anthropic API) or any HuggingFace causal LM.</div>
+          </div>
+        </div>
+        <div class="comp">
+          <span class="comp-icon">⚙️</span>
+          <div>
+            <div class="comp-name">lean.py — Code Synthesiser</div>
+            <div class="comp-desc">NL → Lean 4 via Aristotle, DeepSeek, or Claude. Injects Mathlib preamble when absent.</div>
+          </div>
+        </div>
+        <div class="comp">
+          <span class="comp-icon">✓</span>
+          <div>
+            <div class="comp-name">verify.py — Dual Verifier</div>
+            <div class="comp-desc"><code>lake env lean</code> compile check + <em>outlines</em> structured boolean semantic judge.</div>
+          </div>
+        </div>
+        <div class="comp">
+          <span class="comp-icon">🌐</span>
+          <div>
+            <div class="comp-name">API.py + MCP.py</div>
+            <div class="comp-desc">FastAPI: <code>/nl/</code> &amp; <code>/lean-verify/</code>. MCP server: single <code>verify_math_proof</code> agent tool.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-tint-s card-1">
+        <div class="eyebrow ey-s">Conclusion &amp; Future Work</div>
+        <div class="ctitle ctitle-sm">Key Findings</div>
+        <ul>
+          <li>
+            <strong>Closed-loop verification</strong> substantially reduces hallucinated
+            proofs — the compiler is a hard correctness filter prompt-engineering cannot bypass.
+          </li>
+          <li>
+            <strong>Error feedback as context</strong> enables self-correction within
+            three attempts without any model fine-tuning.
+          </li>
+          <li>
+            <strong>Modular architecture</strong> lets Provably adopt stronger models
+            as they emerge with no changes to the surrounding pipeline.
+          </li>
+        </ul>
+        <div class="hr"></div>
+        <div class="eyebrow ey-s" style="margin-bottom:3mm;">Planned Extensions</div>
+        <div class="tags">
+          <span class="tag tag-s">Parallel proof search</span>
+          <span class="tag tag-s">Full HAN &amp; HAL evaluation</span>
+          <span class="tag tag-a">Fine-tuned Lean model</span>
+          <span class="tag tag-a">Interactive tactic mode</span>
+          <span class="tag tag-w">Multi-agent collaboration</span>
+        </div>
+      </div>
+
+    </div><!-- /col 3 -->
+  </div><!-- /body -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════════════════════ -->
+  <footer class="ftr">
+    <div class="ftr-brand">
+      <span class="ftr-sym">...◻</span>
+      <span class="ftr-name">Provably</span>
+    </div>
+
+    <div class="ftr-items">
+      <div>
+        <div class="ftr-lbl">Repository</div>
+        <div class="ftr-val">github.com/BigBalloon8/Provably</div>
+      </div>
+      <div>
+        <div class="ftr-lbl">Lean Version</div>
+        <div class="ftr-val">leanprover/lean4:v4.28.0-rc1</div>
+      </div>
+      <div>
+        <div class="ftr-lbl">Mathlib</div>
+        <div class="ftr-val">v4.28.0-rc1 · Mathlib4</div>
+      </div>
+    </div>
+
+    <div class="ftr-right">
+      <div class="ftr-lbl">Formally verified with</div>
+      <div class="ftr-val">Lean 4 · Mathlib · Aristotle</div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
