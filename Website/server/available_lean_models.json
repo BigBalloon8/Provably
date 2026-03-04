@@ -1,7 +1,8 @@
 {
   "models": [
-    "aristotle",
     "deepseek-ai/DeepSeek-Prover-V2-7B",
+    "aristotle",
+    "claude-opus-4-6",
     "deepseek-ai/DeepSeek-Prover-V1.5-7B"
   ]
 }

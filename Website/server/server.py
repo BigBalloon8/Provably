@@ -218,7 +218,7 @@ def api_ask():
                 'model':          lean_model,
                 'lean_attempts':  LEAN_ATTEMPTS,
                 'claude_fix_this': CLAUDE_FIX,
-                'local_verify':   False,
+                'local_verify':   True,
             }
             verify_resp = http_requests.post(
                 f'{PROOF_API_BASE}/lean-verify/',
@@ -331,7 +331,7 @@ def api_verify():
         'model':           lean_model,
         'lean_attempts':   LEAN_ATTEMPTS,
         'claude_fix_this': CLAUDE_FIX,
-        'local_verify':    False,
+        'local_verify':    True,
     }
 
     try:

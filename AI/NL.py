@@ -5,7 +5,7 @@ import torch
 
 def get_proof(claim):
     return f"""Prove the following {claim},
-Use the following format write the solution in markdown
+Use the following format write the solution in markdown with latex maths mode for maths
 
 Claim: ...
 
@@ -14,7 +14,7 @@ PROVIDED SOLUTION
 """
 
 def provablyify(text:str):
-    return text.replace("∎", "◻")
+    return text.replace("∎", "◻").replace("■", "◻")
 
 def run_transformer(prompt, model_id):
     tokenizer = AutoTokenizer.from_pretrained(model_id)

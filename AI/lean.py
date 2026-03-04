@@ -87,7 +87,7 @@ def run_transformer_lean(prompt, model_id):
 
     inputs = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(inputs, max_new_tokens=4096, cache_implementation="quantized")
+    outputs = model.generate(inputs, max_new_tokens=2048, cache_implementation="quantized")
     return tokenizer.batch_decode(outputs)[0]
 
 
@@ -128,8 +128,6 @@ def query_claude(prompt: str, model: str = "claude-sonnet-4-5-20250929", thinkin
 
         )
         return message.content[0].text
-
-    
 
 
 def query_transformer(prompt, model_id="deepseek-ai/DeepSeek-Prover-V2-7B", logger=None, attempts=1, claude_fix_this=True):
