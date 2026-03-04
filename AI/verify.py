@@ -77,6 +77,9 @@ def lean_file_output(filepath: str) -> bool:
     """Returns True if the Lean file compiles successfully."""
     print("Verifying Lean")
 
+    with open(filepath, "r") as f:
+        sorries = "sorry" in f.read()
+
     result = subprocess.run(
         ["lake", "env", "lean", filepath],
         capture_output=True,
@@ -84,7 +87,7 @@ def lean_file_output(filepath: str) -> bool:
     )
     if result.returncode == 0:
         print("Lean Succeed")
-        return True, result.stdout
+        return True and not sorries, result.stdout
     else:
         print("Lean Failed")
         return False, result.stdout

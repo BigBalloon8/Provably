@@ -652,7 +652,7 @@
             <div class="pnode pn-accent">
               <span class="pnode-icon">🔨</span>
               <span class="pnode-label">Lean Compiler</span>
-              <span class="pnode-sub">lake env lean<br>Rejected if sorry present</span>
+              <span class="pnode-sub"><br>lake env lean<br>Rejected if sorry present</span>
             </div>
             <div class="split-mid">&amp;</div>
             <div class="pnode pn-success">
@@ -674,7 +674,7 @@
             <span class="retry-icon">↺</span>
             <span class="retry-text">
               On failure: error + attempt fed back as context → retry up to <em>N</em> times.
-              Claude Opus (extended thinking) used as fallback fixer.
+              Claude used as fallback fixer.
             </span>
           </div>
 
@@ -685,8 +685,8 @@
         <div class="eyebrow ey-s">Verification Strategy</div>
         <div class="ctitle ctitle-sm">Dual-Phase Correctness</div>
         <p>
-          Both phases must pass simultaneously — this prevents syntactically valid
-          but semantically wrong proofs, a failure class compile-only checks miss.
+          Both phases must pass simultaneously — this prevents models from presenting lean code
+          that is not equivalent to the given natural language proof
         </p>
         <div class="vrow">
           <div class="vphase vp-compile">
@@ -739,7 +739,7 @@
           <span class="prog-pct">34</span>
         </div>
         <div class="prog-row">
-          <span class="prog-cat">FPM · Pure Math</span>
+          <span class="prog-cat">FPM ·<br> Pure Maths</span>
           <div class="prog-track"><div class="prog-fill s"   style="width:25%"></div></div>
           <span class="prog-pct">34</span>
         </div>
@@ -862,23 +862,26 @@
       </div>
 
       <div class="card card-tint-s card-1">
-        <div class="eyebrow ey-s">Conclusion &amp; Future Work</div>
-        <div class="ctitle ctitle-sm">Key Findings</div>
+        <div class="eyebrow ey-s">Whats Next</div>
+        <div class="ctitle ctitle-sm">Future work</div>
         <ul>
           <li>
-            <strong>Closed-loop verification</strong> substantially reduces hallucinated
-            proofs — the compiler is a hard correctness filter prompt-engineering cannot bypass.
+            <strong>Better Local Models</strong>: If we had a larger budget we would have loved to have finetuned
+            our own model specifically for the NL to lean task, by creating a synthetic dataset from Mathlib for 
+            training
           </li>
           <li>
-            <strong>Error feedback as context</strong> enables self-correction within
-            three attempts without any model fine-tuning.
+            <strong>Smarter Lean Generation</strong>: DeepSeek-Prover-V2 struggles with using MathLib something
+            and hallucinates theorem (that usually exist under a different name). When we write lean code 
+            we are given an info viewer with the goal of the current tactic state. This is important context that helps
+            us solve the problem but that is not currently presented to the language model.
           </li>
           <li>
-            <strong>Modular architecture</strong> lets Provably adopt stronger models
-            as they emerge with no changes to the surrounding pipeline.
+            <strong>Expand Dataset</strong>: Add more questions and finish generating natural language and lean4 
+            for all question
           </li>
         </ul>
-        <div class="hr"></div>
+        <!-- <div class="hr"></div>
         <div class="eyebrow ey-s" style="margin-bottom:3mm;">Planned Extensions</div>
         <div class="tags">
           <span class="tag tag-s">Parallel proof search</span>
@@ -886,7 +889,7 @@
           <span class="tag tag-a">Fine-tuned Lean model</span>
           <span class="tag tag-a">Interactive tactic mode</span>
           <span class="tag tag-w">Multi-agent collaboration</span>
-        </div>
+        </div> -->
       </div>
 
     </div><!-- /col 3 -->
