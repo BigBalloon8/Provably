@@ -86,6 +86,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--nl", default="anthropic", help="Model to use for natural language generation")
-    parser.add_argument("--lean", default="deepseek", help="Model to use for Lean generation")
+    parser.add_argument("--lean", default="aristotle", help="Model to use for Lean generation")
     parser.add_argument("--max_attempts", default=float("inf"), help="The maximum number of repeats to do until solution is found defaults to infinite")
     main(parser.parse_args())

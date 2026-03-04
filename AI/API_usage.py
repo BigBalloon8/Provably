@@ -19,7 +19,8 @@ def main(address:str):
         "proof": response["proof"],
         "model": lean_model,
         "lean_attempts": lean_attempts,
-        "claude_fix_this": claude_fix_this 
+        "claude_fix_this": claude_fix_this,
+        "local_verify": True
     }
 
     lean_correct = requests.post(address + "/lean-verify/", json=lean_data)
