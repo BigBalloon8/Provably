@@ -548,15 +548,49 @@ img, svg {
 }
 
 .sidebar-history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
   color: var(--text-2);
+  cursor: pointer;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.history-item-text {
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.history-delete-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border-radius: 3px;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition), background-color var(--transition);
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background-color var(--transition), color var(--transition);
+  line-height: 0;
+}
+
+.sidebar-history-item:hover .history-delete-btn {
+  opacity: 1;
+}
+
+.history-delete-btn:hover {
+  color: var(--error);
+  background-color: rgba(176, 74, 74, 0.1);
+  opacity: 1;
 }
 
 .sidebar-history-item:hover {
@@ -1189,7 +1223,7 @@ img, svg {
 
 .proof-question {
   border-left: 3px solid var(--accent);
-  background: var(--accent-light);
+  background: var(--surface);
 }
 
 .proof-block {
@@ -1285,11 +1319,10 @@ img, svg {
   margin: 0.5rem 0;
 }
 
-/* KaTeX display math spacing */
 .proof-question .katex-display,
 .proof-block .katex-display {
   margin: 0.85rem 0;
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 /* Inline KaTeX sizing fix */
@@ -1307,6 +1340,16 @@ img, svg {
 
 .proof-block.proof-unverified .proof-label {
   color: var(--warning);
+}
+
+/* ── Proof block — failed / unverifiable state ──────────────────── */
+.proof-block.proof-failed {
+  border-left-color: var(--error);
+  background: #FDF0F0;
+}
+
+.proof-block.proof-failed .proof-label {
+  color: var(--error);
 }
 
 .verifying-banner {

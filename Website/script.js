@@ -1,17 +1,8 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Provably — Dashboard Script
-   Handles: model loading, proof generation, Markdown+Math rendering,
-            status lights, history persistence, mobile sidebar.
-   ═══════════════════════════════════════════════════════════════════ */
+const API_BASE    = 'http://localhost:5000';
+const MAX_RETRIES = 3;
 
-// ── Config ─────────────────────────────────────────────────────────
-const API_BASE    = 'http://localhost:5000'; // Flask server (server/server.py)
-const MAX_RETRIES = 3;                       // NL retry attempts before giving up
+let proofHistory = [];
 
-// ── State ───────────────────────────────────────────────────────────
-let proofHistory = []; // { question, proof, model, timestamp }[]
-
-// ── DOM References ──────────────────────────────────────────────────
 const questionInput   = document.getElementById('questionInput');
 const solveBtn        = document.getElementById('solveBtn');
 const stepsArea       = document.getElementById('stepsArea');
@@ -23,61 +14,28 @@ const sidebar         = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const exampleChips    = document.getElementById('exampleChips');
 const modelSelect     = document.getElementById('modelSelect');
-const lightIdle       = document.getElementById('lightIdle');
-const lightThinking   = document.getElementById('lightThinking');
-const lightFailed     = document.getElementById('lightFailed');
 const leanModelSelect = document.getElementById('leanModelSelect');
 
 
-// ══════════════════════════════════════════════════════════════════
-// STATUS LIGHTS
-// ══════════════════════════════════════════════════════════════════
-
-/**
- * setStatus('idle' | 'thinking' | 'failed')
- * Illuminates exactly one light; the others are dimmed.
- */
-function setStatus(status) {
-  lightIdle.classList.toggle('active',     status === 'idle');
-  lightThinking.classList.toggle('active', status === 'thinking');
-  lightFailed.classList.toggle('active',   status === 'failed');
-}
-
-
-// ══════════════════════════════════════════════════════════════════
-// MARKDOWN + MATH RENDERING
-// ══════════════════════════════════════════════════════════════════
-
-/**
- * renderMarkdownMath(text) → HTML string
- *
- * Strategy:
- *  1. Extract all $...$ and $$...$$ math spans, replace with null-byte
- *     placeholders so Marked.js doesn't mangle them.
- *  2. Run Marked.js to convert Markdown → HTML.
- *  3. Restore each placeholder by rendering the math with KaTeX.
- *
- * Falls back gracefully if libraries are not yet loaded.
- */
+// Renders Markdown + LaTeX in a single pass.
+// Math spans ($...$ and $$...$$) are extracted and replaced with null-byte
+// placeholders before Marked.js runs, then restored via KaTeX afterwards.
+// This prevents Marked from mangling LaTeX syntax.
 function renderMarkdownMath(text) {
   if (!text) return '';
 
   const mathBlocks = [];
 
-  // ── Step 1: protect display math  $$...$$
   let safe = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
     mathBlocks.push({ display: true, expr });
     return `\x00MATH${mathBlocks.length - 1}\x00`;
   });
 
-  // ── Step 2: protect inline math  $...$
-  //   Negative look-behind/ahead for $ to avoid double-matches.
   safe = safe.replace(/\$([^$\n]+?)\$/g, (_, expr) => {
     mathBlocks.push({ display: false, expr });
     return `\x00MATH${mathBlocks.length - 1}\x00`;
   });
 
-  // ── Step 3: also protect \[...\] and \(...\) delimiters
   safe = safe.replace(/\\\[([\s\S]+?)\\\]/g, (_, expr) => {
     mathBlocks.push({ display: true, expr });
     return `\x00MATH${mathBlocks.length - 1}\x00`;
@@ -88,19 +46,16 @@ function renderMarkdownMath(text) {
     return `\x00MATH${mathBlocks.length - 1}\x00`;
   });
 
-  // ── Step 4: Markdown → HTML
   let html;
   if (typeof marked !== 'undefined') {
     marked.setOptions({ breaks: true, gfm: true });
     html = marked.parse(safe);
   } else {
-    // Minimal fallback
     html = '<p>' + safe
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>') + '</p>';
   }
 
-  // ── Step 5: restore math placeholders via KaTeX
   html = html.replace(/\x00MATH(\d+)\x00/g, (_, idxStr) => {
     const { display, expr } = mathBlocks[+idxStr];
     if (typeof katex !== 'undefined') {
@@ -111,11 +66,9 @@ function renderMarkdownMath(text) {
           output: 'html',
         });
       } catch (_) {
-        // KaTeX parse error — return raw source
         return display ? `$$${expr}$$` : `$${expr}$`;
       }
     }
-    // KaTeX not loaded — return raw source so text is still readable
     return display ? `$$${expr}$$` : `$${expr}$`;
   });
 
@@ -123,28 +76,15 @@ function renderMarkdownMath(text) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════════
-
 document.addEventListener('DOMContentLoaded', async () => {
-  // Page fade-in
   document.body.classList.add('loaded');
 
-  // Default state: idle (green light on)
-  setStatus('idle');
-
-  // Load available models into dropdowns
   await loadModels();
   await loadLeanModels();
-
-  // Load persisted proof history from server
   await loadHistory();
 
-  // ── Event listeners ────────────────────────────────────────────
   solveBtn.addEventListener('click', handleSolve);
 
-  // Ctrl+Enter or Cmd+Enter inside textarea submits
   questionInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -152,12 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Auto-grow textarea
   questionInput.addEventListener('input', autoGrowTextarea);
-
   newProblemBtn.addEventListener('click', resetToWelcome);
 
-  // Example chips → populate input
   exampleChips?.addEventListener('click', (e) => {
     const chip = e.target.closest('.example-chip');
     if (!chip) return;
@@ -166,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     questionInput.focus();
   });
 
-  // Mobile sidebar
   sidebarToggle.addEventListener('click', toggleSidebar);
   sidebarBackdrop.addEventListener('click', closeSidebar);
 });
@@ -177,9 +113,7 @@ function autoGrowTextarea() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// MODELS
-// ══════════════════════════════════════════════════════════════════
+// Models
 
 async function loadModels() {
   try {
@@ -197,12 +131,10 @@ async function loadModels() {
       modelSelect.appendChild(opt);
     });
   } catch (err) {
-    // Fallback: single placeholder so the UI still works
     modelSelect.innerHTML = '<option value="default">Default Model</option>';
     console.warn('[Provably] Could not load models:', err.message);
   }
 }
-
 
 async function loadLeanModels() {
   try {
@@ -226,9 +158,7 @@ async function loadLeanModels() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// HISTORY  (server-persisted via history.json)
-// ══════════════════════════════════════════════════════════════════
+// History
 
 async function loadHistory() {
   try {
@@ -264,11 +194,31 @@ function renderHistorySidebar() {
 
   proofHistory.slice(0, 20).forEach((entry, idx) => {
     const item = document.createElement('div');
-    item.className   = 'sidebar-history-item' + (idx === 0 ? ' active' : '');
-    item.textContent = truncate(entry.question, 34);
-    item.title       = entry.question;
+    item.className = 'sidebar-history-item' + (idx === 0 ? ' active' : '');
     item.setAttribute('role',     'button');
     item.setAttribute('tabindex', '0');
+
+    const itemText = document.createElement('span');
+    itemText.className   = 'history-item-text';
+    itemText.textContent = truncate(entry.question, 34);
+    itemText.title       = entry.question;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'history-delete-btn';
+    deleteBtn.setAttribute('aria-label', 'Delete this proof');
+    deleteBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteHistoryEntry(idx);
+    });
+
+    item.appendChild(itemText);
+    item.appendChild(deleteBtn);
 
     item.addEventListener('click',   () => reloadHistoryEntry(entry, item));
     item.addEventListener('keydown', (e) => {
@@ -279,25 +229,30 @@ function renderHistorySidebar() {
   });
 }
 
+async function deleteHistoryEntry(idx) {
+  try {
+    await fetch(`${API_BASE}/api/history/${idx}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn('[Provably] Could not delete history entry:', err.message);
+  }
+  proofHistory.splice(idx, 1);
+  renderHistorySidebar();
+}
+
 function reloadHistoryEntry(entry, clickedItem) {
-  // Mark active
   document.querySelectorAll('.sidebar-history-item')
     .forEach(el => el.classList.remove('active'));
   clickedItem.classList.add('active');
 
-  // Redisplay saved proof
   welcomeState.style.display = 'none';
   clearPreviousProof();
   renderProof(entry.question, entry.proof);
 
-  // Close sidebar on mobile
   closeSidebar();
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// SOLVE / GENERATE PROOF  (two-phase: NL first, then Lean verify)
-// ══════════════════════════════════════════════════════════════════
+// Proof generation — NL first, then Lean verification loop
 
 async function handleSolve() {
   const question = questionInput.value.trim();
@@ -309,20 +264,16 @@ async function handleSolve() {
   const model     = modelSelect.value     || 'default';
   const leanModel = leanModelSelect.value || 'aristotle';
 
-  // UI → loading state
   setLoading(true);
-  setStatus('thinking');
   welcomeState.style.display = 'none';
   clearPreviousProof();
 
-  // Show the theorem immediately
   renderQuestion(question);
 
-  // Show loading spinner while waiting for the first NL proof
   const nlLoadingEl = showLoading('Generating proof…');
+  let proofBlockEl = null;
 
   try {
-    // ── Phase 1: Get the initial NL proof ───────────────────────────
     const nlResp = await fetch(`${API_BASE}/api/nl`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -339,11 +290,9 @@ async function handleSolve() {
 
     if (!currentProof) throw new Error('The server returned an empty proof.');
 
-    // Display the NL proof immediately with a "verifying" banner
     nlLoadingEl.remove();
-    const proofBlockEl = renderNLProof(currentProof);
+    proofBlockEl = renderNLProof(currentProof);
 
-    // ── Phase 2: Verify in a loop (retry with new NL if invalid) ───
     let verified = false;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -365,7 +314,7 @@ async function handleSolve() {
         break;
       }
 
-      // Not valid — fetch a new NL proof and update the display
+      // Verification failed — fetch a new NL proof and try again
       if (attempt < MAX_RETRIES - 1) {
         const retryResp = await fetch(`${API_BASE}/api/nl`, {
           method:  'POST',
@@ -383,11 +332,8 @@ async function handleSolve() {
     }
 
     if (verified) {
-      // Mark proof as verified — remove banner, apply green styling
       markProofVerified(proofBlockEl);
-      setStatus('idle');
 
-      // Persist to history
       const entry = {
         question,
         proof:     currentProof,
@@ -398,23 +344,20 @@ async function handleSolve() {
       proofHistory.unshift(entry);
       renderHistorySidebar();
     } else {
-      // Couldn't verify — remove the spinner banner but keep the proof visible
-      markProofVerified(proofBlockEl);
+      markProofFailed(proofBlockEl);
       showError(
         `Lean could not formally verify this proof after ${MAX_RETRIES} attempt(s). ` +
         'The proof shown may contain errors.'
       );
-      setStatus('failed');
     }
 
-    // Clear input
     questionInput.value = '';
     questionInput.style.height = '';
 
   } catch (err) {
     nlLoadingEl?.remove();
+    if (proofBlockEl) markProofFailed(proofBlockEl);
     showError(err.message || 'Could not connect to the proof server. Make sure server/server.py is running.');
-    setStatus('failed');
     console.error('[Provably]', err);
   } finally {
     setLoading(false);
@@ -422,21 +365,15 @@ async function handleSolve() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// PROOF RENDERING
-// ══════════════════════════════════════════════════════════════════
+// Rendering
 
-/**
- * renderQuestion(question)
- * Renders the theorem/question block.
- */
 function renderQuestion(question) {
   const qBlock = document.createElement('div');
   qBlock.className = 'proof-question';
 
   const qLabel = document.createElement('span');
   qLabel.className   = 'proof-label';
-  qLabel.textContent = 'Theorem';
+  qLabel.textContent = 'Question';
 
   const qContent = document.createElement('div');
   qContent.innerHTML = renderMarkdownMath(question);
@@ -447,16 +384,10 @@ function renderQuestion(question) {
   stepsArea.scrollTop = 0;
 }
 
-/**
- * renderNLProof(proofText)
- * Renders the proof block in "unverified / verifying" state.
- * Returns the block element so it can be updated later.
- */
 function renderNLProof(proofText) {
   const pBlock = document.createElement('div');
   pBlock.className = 'proof-block proof-unverified';
 
-  // Animated banner indicating verification is in progress
   const banner = document.createElement('div');
   banner.className = 'verifying-banner';
   banner.innerHTML = `
@@ -482,29 +413,25 @@ function renderNLProof(proofText) {
   return pBlock;
 }
 
-/**
- * updateProofBlock(pBlock, proofText)
- * Replaces the proof text inside an existing proof block element.
- */
 function updateProofBlock(pBlock, proofText) {
   const content = pBlock.querySelector('.proof-content');
   if (content) content.innerHTML = renderMarkdownMath(proofText);
 }
 
-/**
- * markProofVerified(pBlock)
- * Removes the verifying banner and applies the green verified styling.
- */
 function markProofVerified(pBlock) {
   pBlock.classList.remove('proof-unverified');
   const banner = pBlock.querySelector('.verifying-banner');
   if (banner) banner.remove();
 }
 
-/**
- * renderProof(question, proofText)
- * Convenience wrapper used when loading history entries (already verified).
- */
+function markProofFailed(pBlock) {
+  pBlock.classList.remove('proof-unverified');
+  pBlock.classList.add('proof-failed');
+  const banner = pBlock.querySelector('.verifying-banner');
+  if (banner) banner.remove();
+}
+
+// Used when reloading a history entry (already verified, skip the banner)
 function renderProof(question, proofText) {
   renderQuestion(question);
   const pBlock = renderNLProof(proofText);
@@ -513,9 +440,7 @@ function renderProof(question, proofText) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════════════
+// Helpers
 
 function clearPreviousProof() {
   Array.from(stepsArea.children).forEach(child => {
@@ -531,7 +456,6 @@ function resetToWelcome() {
   questionInput.focus();
   document.querySelectorAll('.sidebar-history-item')
     .forEach(el => el.classList.remove('active'));
-  setStatus('idle');
 }
 
 function showLoading(msg = 'Generating &amp; verifying proof…') {
@@ -576,9 +500,7 @@ function truncate(str, maxLen) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// MOBILE SIDEBAR
-// ══════════════════════════════════════════════════════════════════
+// Mobile sidebar
 
 function toggleSidebar() {
   const isOpen = sidebar.classList.toggle('open');
