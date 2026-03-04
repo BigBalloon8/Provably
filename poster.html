@@ -568,16 +568,24 @@
           principled way to separate a correct proof from a convincing failure.
         </p>
         <p>
-          Existing tools require users to write Lean directly or produce
-          unverified output. Provably closes this gap automatically.
+          There are models that generate lean4 directly from the NL claim but 
+          this lean4 code is not useful for the casual user. Attempts to use language models
+          to describe this lean4 code as a natural language proof often results on messy
+          proofs that are not easy to read, this is a by-product of lean4 requiring all theorems
+          being derived from axioms and definitions, which is not often required explicitly in
+          a NL proof
         </p>
-        <div class="hr"></div>
+        <p>
+          Overall we wanted to create a tool that the casual user could use to guarantee their
+          choice of LLM will generate correct mathematics. 
+        </p>
+        <!-- <div class="hr"></div>
         <ul>
           <li><strong>No Lean expertise required</strong> — accessible to any mathematician</li>
           <li><strong>Machine-checkable output</strong> guaranteed on every accepted proof</li>
           <li><strong>Modular back-ends</strong> — swap NL or Lean models freely</li>
           <li><strong>REST API and MCP server</strong> for tool integration</li>
-        </ul>
+        </ul> -->
       </div>
 
       <div class="card card-1">
@@ -701,32 +709,6 @@
         </div>
       </div>
 
-      <div class="card card-1" style="display:flex;flex-direction:column;">
-        <div class="eyebrow">Example Verified Proof</div>
-        <div class="ctitle ctitle-sm">Lean 4 — Binomial Sum Identity</div>
-        <p style="margin-bottom:4mm;">
-          Claim: <em>&sum;<sub>t=0</sub><sup>n&minus;k</sup> C(n+t,&thinsp;t) =
-          &sum;<sub>t=k</sub><sup>n</sup> C(n+t&minus;k,&thinsp;n)</em>,
-          for n&thinsp;&isin;&thinsp;&#x2115; and k&thinsp;&le;&thinsp;n.
-        </p>
-        <div class="code">
-<span class="kw">import</span> Mathlib<br>
-<span class="kw">set_option</span> maxHeartbeats <span class="nm">0</span><br>
-<span class="kw">open</span> <span class="op">BigOperators</span><br>
-<span class="kw">theorem</span> <span class="fn">binomial_sum_identity</span> (n k : ℕ) (h : k ≤ n) :<br>
-&nbsp;&nbsp;&nbsp;&nbsp;∑ t ∈ Finset.range (n - k + <span class="nm">1</span>), (n + t).choose t<br>
-&nbsp;&nbsp;= ∑ t ∈ Finset.Ico k (n + <span class="nm">1</span>), (n + t - k).choose n := <span class="kw">by</span><br>
-&nbsp;&nbsp;simp [Nat.choose_symm_add, Finset.sum_Ico_eq_sum_range]<br>
-&nbsp;&nbsp;ring<br>
-<span class="ok">✓ Compiled and semantically verified — Aristotle</span>
-        </div>
-      </div>
-
-    </div><!-- /col 2 -->
-
-    <!-- ────────────────────── Column 3 ────────────────────── -->
-    <div class="col">
-
       <div class="card card-1">
         <div class="eyebrow">Benchmark</div>
         <div class="ctitle ctitle-sm">136 University-Level Problems</div>
@@ -752,76 +734,30 @@
 
         <div class="prog-row">
           <span class="prog-cat">PPS · Foundations</span>
-          <div class="prog-track"><div class="prog-fill"   style="width:56%"></div></div>
-          <span class="prog-pct">76</span>
+          <div class="prog-track"><div class="prog-fill"   style="width:25%"></div></div>
+          <span class="prog-pct">34</span>
         </div>
         <div class="prog-row">
           <span class="prog-cat">FPM · Pure Math</span>
-          <div class="prog-track"><div class="prog-fill"   style="width:29%"></div></div>
-          <span class="prog-pct">40</span>
+          <div class="prog-track"><div class="prog-fill s"   style="width:25%"></div></div>
+          <span class="prog-pct">34</span>
         </div>
         <div class="prog-row">
           <span class="prog-cat">HAN · Analysis</span>
-          <div class="prog-track"><div class="prog-fill s" style="width:21%"></div></div>
-          <span class="prog-pct">29</span>
+          <div class="prog-track"><div class="prog-fill w" style="width:25%"></div></div>
+          <span class="prog-pct">34</span>
         </div>
         <div class="prog-row">
           <span class="prog-cat">HAL · Algebra</span>
-          <div class="prog-track"><div class="prog-fill w" style="width:22%"></div></div>
-          <span class="prog-pct">30</span>
+          <div class="prog-track"><div class="prog-fill w" style="width:25%"></div></div>
+          <span class="prog-pct">34</span>
         </div>
       </div>
 
-      <div class="card card-success card-1">
-        <div class="eyebrow ey-s">Results</div>
-        <div class="ctitle ctitle-sm">Pass Rates by Model Combination</div>
+    </div><!-- /col 2 -->
 
-        <table class="bench">
-          <thead>
-            <tr>
-              <th>NL Model</th>
-              <th>Lean Back-end</th>
-              <th>Pass@1</th>
-              <th>Pass@3</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Claude Sonnet</td>
-              <td>Aristotle</td>
-              <td>68%</td>
-              <td>81%</td>
-            </tr>
-            <tr>
-              <td>Claude Sonnet</td>
-              <td>DeepSeek-V2</td>
-              <td>52%</td>
-              <td>71%</td>
-            </tr>
-            <tr>
-              <td>Claude Opus</td>
-              <td>Aristotle</td>
-              <td>74%</td>
-              <td>86%</td>
-            </tr>
-            <tr>
-              <td>Claude Opus</td>
-              <td>DeepSeek + fix</td>
-              <td>67%</td>
-              <td>80%</td>
-            </tr>
-            <tr class="bench-total">
-              <td colspan="2">Best (Opus + Aristotle)</td>
-              <td>74%</td>
-              <td>86%</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="font-size:7mm;color:var(--text-3);margin-top:4mm;">
-          Pass@<em>k</em>: fraction solved within <em>k</em> attempts.
-          Evaluated on PPS and FPM tiers; HAN and HAL ongoing.
-        </p>
-      </div>
+    <!-- ────────────────────── Column 3 ────────────────────── -->
+    <div class="col">
 
       <div class="card card-warning card-1">
         <div class="eyebrow ey-w">System Components</div>
@@ -845,15 +781,82 @@
           <span class="comp-icon">✓</span>
           <div>
             <div class="comp-name">verify.py — Dual Verifier</div>
-            <div class="comp-desc"><code>lake env lean</code> compile check + <em>outlines</em> structured boolean semantic judge.</div>
+            <div class="comp-desc"><code>lake env lean</code> compile check + semantic judge.</div>
           </div>
         </div>
         <div class="comp">
           <span class="comp-icon">🌐</span>
           <div>
-            <div class="comp-name">API.py + MCP.py</div>
-            <div class="comp-desc">FastAPI: <code>/nl/</code> &amp; <code>/lean-verify/</code>. MCP server: single <code>verify_math_proof</code> agent tool.</div>
+            <div class="comp-name">API.py — REST Server</div>
+            <div class="comp-desc">FastAPI server exposing <code>/nl/</code> and <code>/lean-verify/</code> endpoints for proof generation and verification.</div>
           </div>
+        </div>
+        <div class="comp">
+          <span class="comp-icon">🔧</span>
+          <div>
+            <div class="comp-name">MCP.py — Agent Tool</div>
+            <div class="comp-desc">MCP server wrapping the full pipeline as a single <code>verify_math_proof</code> tool for LLM agents.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-accent card-2">
+        <div class="eyebrow">Worked Example</div>
+        <div class="ctitle ctitle-sm">PPS-031 — Full Pipeline Trace</div>
+
+        <div style="display:flex;flex-direction:column;flex:1;gap:0;overflow:hidden;">
+
+          <div style="background:var(--accent);border-radius:3mm;padding:3.5mm 5mm;flex-shrink:0;">
+            <div style="font-size:4.5mm;font-weight:700;letter-spacing:0.5mm;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:1.5mm;">① Input Claim</div>
+            <div style="font-size:8mm;color:#fff;font-style:italic;line-height:1.35;">
+              Let R and S be equivalence relations on X. Define xTy &hArr; xRy &and; xSy.
+              Then T is an equivalence relation on X.
+            </div>
+          </div>
+
+          <div class="arrow-dn" style="align-self:center;"></div>
+
+          <div style="background:var(--accent-light);border:1px solid rgba(61,90,128,0.2);border-radius:3mm;padding:3.5mm 5mm;flex-shrink:0;">
+            <div style="font-size:4.5mm;font-weight:700;letter-spacing:0.5mm;text-transform:uppercase;color:var(--accent);margin-bottom:1.5mm;">② NL Proof &mdash; Claude Sonnet (shortened for poster)</div>
+            <p style="font-size:7.5mm;line-height:1.5;color:var(--text-2);">
+              We verify the three properties of an equivalence relation.<br>
+              <strong>Reflexivity:</strong> Let x&thinsp;&isin;&thinsp;X. Since R and S are reflexive, xRx and xSx, so xTx.<br>
+              <strong>Symmetry:</strong> If xTy then xRy&thinsp;&and;&thinsp;xSy. By symmetry of R and S, yRx&thinsp;&and;&thinsp;ySx, so yTx.<br>
+              <strong>Transitivity:</strong> If xTy and yTz, then xRy&thinsp;&and;&thinsp;yRz gives xRz, and xSy&thinsp;&and;&thinsp;ySz gives xSz, so xTz.&ensp; ◻;
+            </p>
+          </div>
+
+          <div class="arrow-dn" style="align-self:center;"></div>
+
+          <div style="flex-shrink:0;">
+            <div style="font-size:4.5mm;font-weight:700;letter-spacing:0.5mm;text-transform:uppercase;color:var(--warning);margin-bottom:1.5mm;">③ Lean 4 Code &mdash; Aristotle</div>
+            <div class="code" style="font-size:5.5mm;line-height:1.6;">
+<span class="kw">import</span> Mathlib &nbsp; <span class="kw">set_option</span> maxHeartbeats <span class="nm">0</span><br>
+<span class="kw">def</span> <span class="fn">T</span> {X : <span class="op">Type</span>} (R S : X → X → <span class="op">Prop</span>) (x y : X) : <span class="op">Prop</span> :=<br>
+&nbsp;&nbsp;R x y <span class="op">∧</span> S x y &nbsp;<span style="color:#6c7086;">-- xTy ↔ xRy ∧ xSy</span><br>
+<span class="kw">theorem</span> <span class="fn">T_is_equivalence</span> {X : <span class="op">Type</span>}<br>
+&nbsp;&nbsp;(R S : X → X → <span class="op">Prop</span>)<br>
+&nbsp;&nbsp;(hR : <span class="op">Equivalence</span> R) (hS : <span class="op">Equivalence</span> S) :<br>
+&nbsp;&nbsp;<span class="op">Equivalence</span> (<span class="fn">T</span> R S) := <span class="kw">by</span><br>
+&nbsp;&nbsp;<span class="fn">constructor</span><br>
+&nbsp;&nbsp;· <span class="kw">exact fun</span> x ↦ ⟨hR.<span class="fn">refl</span> x, hS.<span class="fn">refl</span> x⟩ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6c7086;">-- Reflexivity</span><br>
+&nbsp;&nbsp;· <span class="kw">exact fun</span> h ↦ ⟨hR.<span class="fn">symm</span> h.<span class="nm">1</span>, hS.<span class="fn">symm</span> h.<span class="nm">2</span>⟩ &nbsp;&nbsp;<span style="color:#6c7086;">-- Symmetry</span><br>
+&nbsp;&nbsp;· <span class="kw">exact fun</span> h1 h2 ↦ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6c7086;">-- Transitivity</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;⟨hR.<span class="fn">trans</span> h1.<span class="nm">1</span> h2.<span class="nm">1</span>, hS.<span class="fn">trans</span> h1.<span class="nm">2</span> h2.<span class="nm">2</span>⟩
+            </div>
+          </div>
+
+          <div class="arrow-dn" style="align-self:center;"></div>
+
+          <div style="background:var(--success-light);border:1px solid rgba(74,124,89,0.2);border-radius:3mm;padding:3.5mm 5mm;flex-shrink:0;">
+            <div style="font-size:4.5mm;font-weight:700;letter-spacing:0.5mm;text-transform:uppercase;color:var(--success);margin-bottom:1.5mm;">④ Verification</div>
+            <p style="font-size:7.5mm;line-height:1.6;color:var(--text-2);">
+              <strong style="color:var(--success);">✓</strong> Lean compiler &mdash; exit 0, no <code>sorry</code>
+              &emsp;
+              <strong style="color:var(--success);">✓</strong> Semantic judge &mdash; NL &harr; Lean equivalence confirmed
+            </p>
+          </div>
+
         </div>
       </div>
 
@@ -893,8 +896,8 @@
        ══════════════════════════════════════════════════════════ -->
   <footer class="ftr">
     <div class="ftr-brand">
+      <span class="ftr-name">Provably&thinsp;</span>
       <span class="ftr-sym">...◻</span>
-      <span class="ftr-name">Provably</span>
     </div>
 
     <div class="ftr-items">

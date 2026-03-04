@@ -8,7 +8,7 @@ import asyncio
 import re
 import os
 
-from verify import lean_file_output
+from AI.verify import lean_file_output
 #-----------------------------------------------------------------------------------------------------
 def get_lean(proof):
     return f"""This is a claim and proof written in natural language can you write it in lean as 1 to 1 as possible even if there is mistakes
