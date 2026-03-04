@@ -592,7 +592,8 @@
         <div class="eyebrow">Background</div>
         <div class="ctitle ctitle-sm">Lean 4 &amp; Mathlib</div>
         <p>
-          Lean&nbsp;4 is a dependently-typed proof assistant from Microsoft Research.
+          Lean&nbsp;4 is a functional programming language and theorem prover built 
+          for formalising math and for formal verification.
           <strong>Mathlib</strong> provides over 175,000 formalised lemmas covering
           undergraduate and graduate mathematics — the formal foundation Provably targets.
         </p>
@@ -720,15 +721,15 @@
           </div>
           <div class="stat s">
             <span class="stat-val">4</span>
-            <span class="stat-lbl">Difficulty Tiers</span>
+            <span class="stat-lbl">Subjects</span>
           </div>
           <div class="stat">
             <span class="stat-val">3</span>
-            <span class="stat-lbl">NL Back-ends</span>
+            <span class="stat-lbl">Years of Difficulty</span>
           </div>
           <div class="stat s">
-            <span class="stat-val">3</span>
-            <span class="stat-lbl">Lean Back-ends</span>
+            <span class="stat-val">86</span>
+            <span class="stat-lbl">Example NL and Lean4 solutions</span>
           </div>
         </div>
 
@@ -802,14 +803,14 @@
 
       <div class="card card-accent card-2">
         <div class="eyebrow">Worked Example</div>
-        <div class="ctitle ctitle-sm">PPS-031 — Full Pipeline Trace</div>
+        <div class="ctitle ctitle-sm">Example - Full Pipeline Trace</div>
 
         <div style="display:flex;flex-direction:column;flex:1;gap:0;overflow:hidden;">
 
           <div style="background:var(--accent);border-radius:3mm;padding:3.5mm 5mm;flex-shrink:0;">
             <div style="font-size:4.5mm;font-weight:700;letter-spacing:0.5mm;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:1.5mm;">① Input Claim</div>
             <div style="font-size:8mm;color:#fff;font-style:italic;line-height:1.35;">
-              Let R and S be equivalence relations on X. Define xTy &hArr; xRy &and; xSy.
+              Let R and S be equivalence relations on X. Define <br><br> xTy &hArr; xRy &and; xSy <br><br>
               Then T is an equivalence relation on X.
             </div>
           </div>
@@ -820,8 +821,8 @@
             <div style="font-size:4.5mm;font-weight:700;letter-spacing:0.5mm;text-transform:uppercase;color:var(--accent);margin-bottom:1.5mm;">② NL Proof &mdash; Claude Sonnet (shortened for poster)</div>
             <p style="font-size:7.5mm;line-height:1.5;color:var(--text-2);">
               We verify the three properties of an equivalence relation.<br>
-              <strong>Reflexivity:</strong> Let x&thinsp;&isin;&thinsp;X. Since R and S are reflexive, xRx and xSx, so xTx.<br>
-              <strong>Symmetry:</strong> If xTy then xRy&thinsp;&and;&thinsp;xSy. By symmetry of R and S, yRx&thinsp;&and;&thinsp;ySx, so yTx.<br>
+              <strong>Reflexivity:</strong> Let x&thinsp;&isin;&thinsp;X. Since R and S are reflexive, xRx and xSx, so xTx.<br><br>
+              <strong>Symmetry:</strong> If xTy then xRy&thinsp;&and;&thinsp;xSy. By symmetry of R and S, yRx&thinsp;&and;&thinsp;ySx, so yTx.<br><br>
               <strong>Transitivity:</strong> If xTy and yTz, then xRy&thinsp;&and;&thinsp;yRz gives xRz, and xSy&thinsp;&and;&thinsp;ySz gives xSz, so xTz.&ensp; ◻;
             </p>
           </div>
